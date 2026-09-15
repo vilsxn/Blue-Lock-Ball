@@ -46,69 +46,160 @@ async function setupPanel() {
           </div>
         </div>
 
-        <section>
+        <!-- ABAS DO GM -->
 
-          <h2>
-            Status da Bola
-          </h2>
+        <div class="gm-tabs">
 
-          <div id="ball-status">
-            Carregando...
-          </div>
+          <button
+            id="tab-match"
+            class="gm-tab active"
+          >
+            📊 Partida
+          </button>
 
-        </section>
+          <button
+            id="tab-gm"
+            class="gm-tab"
+          >
+            👑 GM
+          </button>
 
-        <section>
+        </div>
 
-          <h2>
-            Posse Atual
-          </h2>
+        <!-- ================================= -->
+        <!-- ABA PARTIDA -->
+        <!-- ================================= -->
 
-          <div id="ball-holder">
-            Carregando...
-          </div>
+        <div id="gm-match-tab">
 
-        </section>
-
-        <section>
-
-          <div class="history-header">
+          <section>
 
             <h2>
-              Histórico da Partida
+              Status da Bola
             </h2>
 
-            <div class="history-actions">
+            <div id="ball-status">
+              Carregando...
+            </div>
 
-              <button
-                id="export-history"
-                class="export-button"
-                title="Exportar histórico"
-              >
-                📄
-              </button>
+          </section>
 
-              <button
-                id="clear-history"
-                class="clear-button"
-                title="Limpar histórico"
-              >
-                🧹
-              </button>
+          <section>
+
+            <h2>
+              Posse Atual
+            </h2>
+
+            <div id="ball-holder">
+              Carregando...
+            </div>
+
+          </section>
+
+          <section>
+
+            <div class="history-header">
+
+              <h2>
+                Histórico da Partida
+              </h2>
+
+              <div class="history-actions">
+
+                <button
+                  id="export-history"
+                  class="export-button"
+                  title="Exportar histórico"
+                >
+                  📄
+                </button>
+
+                <button
+                  id="clear-history"
+                  class="clear-button"
+                  title="Limpar histórico"
+                >
+                  🧹
+                </button>
+
+              </div>
 
             </div>
 
+            <div id="pass-history">
+              Nenhum evento ainda.
+            </div>
+
+          </section>
+
+        </div>
+
+        <!-- ================================= -->
+        <!-- ABA GM -->
+        <!-- ================================= -->
+
+        <div
+          id="gm-owner-tab"
+          style="display: none;"
+        >
+
+          <section>
+
+            <div class="history-header">
+
+              <h2>
+                Donos dos Personagens
+              </h2>
+
+              <span
+                id="owner-count"
+                class="gm-count"
+              >
+                0
+              </span>
+
+            </div>
+
+            <div id="owner-list">
+              Carregando...
+            </div>
+
+          </section>
+
+          <section>
+
+            <h2>
+              Resumo da Bola
+            </h2>
+
+            <div id="gm-ball-summary">
+              Carregando...
+            </div>
+
+          </section>
+
+          <div class="player-help">
+
+            👑 Esta área é exclusiva do GM.
+
+            <br><br>
+
+            Aqui você pode visualizar qual personagem
+            está atribuído a cada jogador.
+
+            <br><br>
+
+            A atribuição dos donos será feita pelo menu
+            <strong>👤 Definir dono</strong>.
+
           </div>
 
-          <div id="pass-history">
-            Nenhum evento ainda.
-          </div>
-
-        </section>
+        </div>
 
       </div>
     `;
 
+    setupGMTabButtons();
     setupHistoryButtons();
 
   } else {
@@ -178,6 +269,70 @@ async function setupPanel() {
 
   OBR.scene.items.onChange(() => {
     void renderPanel(isGM);
+  });
+
+  if (isGM) {
+    OBR.party.onChange(() => {
+      void renderGMOwners();
+    });
+  }
+}
+
+// =========================================
+// ABAS DO GM
+// =========================================
+
+function setupGMTabButtons() {
+
+  const matchTab =
+    document.querySelector<HTMLButtonElement>(
+      "#tab-match"
+    );
+
+  const gmTab =
+    document.querySelector<HTMLButtonElement>(
+      "#tab-gm"
+    );
+
+  const matchContent =
+    document.querySelector<HTMLDivElement>(
+      "#gm-match-tab"
+    );
+
+  const gmContent =
+    document.querySelector<HTMLDivElement>(
+      "#gm-owner-tab"
+    );
+
+  if (
+    !matchTab ||
+    !gmTab ||
+    !matchContent ||
+    !gmContent
+  ) {
+    return;
+  }
+
+  matchTab.addEventListener("click", () => {
+
+    matchTab.classList.add("active");
+    gmTab.classList.remove("active");
+
+    matchContent.style.display = "block";
+    gmContent.style.display = "none";
+
+  });
+
+  gmTab.addEventListener("click", () => {
+
+    matchTab.classList.remove("active");
+    gmTab.classList.add("active");
+
+    matchContent.style.display = "none";
+    gmContent.style.display = "block";
+
+    void renderGMOwners();
+
   });
 }
 
@@ -620,7 +775,7 @@ async function deleteEvent(
     if (
       realIndex < 0 ||
       realIndex >=
-        historyData.length
+      historyData.length
     ) {
       return;
     }
@@ -914,142 +1069,513 @@ async function renderPanel(
         </div>
       `;
 
-      return;
-    }
+    } else {
 
-    const history =
-      historyData as HistoryEvent[];
+      const history =
+        historyData as HistoryEvent[];
 
-    // SOMENTE OS 8 ÚLTIMOS
+      const recent =
+        [
+          ...history,
+        ]
+          .reverse()
+          .slice(
+            0,
+            VISIBLE_HISTORY
+          );
 
-    const recent =
-      [
-        ...history,
-      ]
-        .reverse()
-        .slice(
-          0,
-          VISIBLE_HISTORY
-        );
+      passHistory.innerHTML =
+        recent
+          .map(
+            (
+              event,
+              index
+            ) => {
 
-    passHistory.innerHTML =
-      recent
-        .map(
-          (
-            event,
-            index
-          ) => {
+              const fromName =
+                event.fromName ||
+                "Desconhecido";
 
-            const fromName =
-              event.fromName ||
-              "Desconhecido";
+              const toName =
+                event.toName ||
+                "Desconhecido";
 
-            const toName =
-              event.toName ||
-              "Desconhecido";
+              let content = "";
 
-            let content = "";
+              // ---------------------------------
+              // INTERCEPTAÇÃO
+              // ---------------------------------
 
-            // ---------------------------------
-            // INTERCEPTAÇÃO
-            // ---------------------------------
+              if (
+                event.type === "interception" ||
+                event.type === "steal"
+              ) {
 
-            if (
-              event.type === "interception" ||
-              event.type === "steal"
-            ) {
+                content = `
+                  <span class="pass-ball">
+                    🛡️
+                  </span>
 
-              content = `
-                <span class="pass-ball">
-                  🛡️
-                </span>
+                  <strong>
+                    ${escapeHtml(
+                      toName
+                    )}
+                  </strong>
 
-                <strong>
-                  ${escapeHtml(
-                    toName
-                  )}
-                </strong>
+                  <span class="arrow">
+                    interceptou
+                  </span>
 
-                <span class="arrow">
-                  interceptou
-                </span>
+                  <strong>
+                    ${escapeHtml(
+                      fromName
+                    )}
+                  </strong>
+                `;
 
-                <strong>
-                  ${escapeHtml(
-                    fromName
-                  )}
-                </strong>
-              `;
+              }
 
-            }
+              // ---------------------------------
+              // PASSE
+              // ---------------------------------
 
-            // ---------------------------------
-            // PASSE
-            // ---------------------------------
+              else {
 
-            else {
+                content = `
+                  <span class="pass-ball">
+                    ⚽
+                  </span>
 
-              content = `
-                <span class="pass-ball">
-                  ⚽
-                </span>
+                  <strong>
+                    ${escapeHtml(
+                      fromName
+                    )}
+                  </strong>
 
-                <strong>
-                  ${escapeHtml(
-                    fromName
-                  )}
-                </strong>
+                  <span class="arrow">
+                    passou para
+                  </span>
 
-                <span class="arrow">
-                  passou para
-                </span>
+                  <strong>
+                    ${escapeHtml(
+                      toName
+                    )}
+                  </strong>
+                `;
+              }
 
-                <strong>
-                  ${escapeHtml(
-                    toName
-                  )}
-                </strong>
-              `;
-            }
+              const deleteButton =
+                isGM
+                  ? `
+                    <button
+                      class="delete-pass"
+                      data-index="${index}"
+                      title="Excluir este evento"
+                    >
+                      🗑
+                    </button>
+                  `
+                  : "";
 
-            const deleteButton =
-              isGM
-                ? `
-                  <button
-                    class="delete-pass"
-                    data-index="${index}"
-                    title="Excluir este evento"
-                  >
-                    🗑
-                  </button>
-                `
-                : "";
+              return `
+                <div class="pass">
 
-            return `
-              <div class="pass">
+                  <div class="pass-info">
 
-                <div class="pass-info">
+                    ${content}
 
-                  ${content}
+                  </div>
+
+                  ${deleteButton}
 
                 </div>
+              `;
+            }
+          )
+          .join("");
 
-                ${deleteButton}
+      if (isGM) {
+        setupIndividualDeleteButtons();
+      }
+    }
 
-              </div>
-            `;
-          }
-        )
-        .join("");
+    // =====================================
+    // ABA GM
+    // =====================================
 
     if (isGM) {
-      setupIndividualDeleteButtons();
+      void renderGMOwners();
     }
 
   } catch (error) {
 
     console.error(
       "Erro ao atualizar painel:",
+      error
+    );
+  }
+}
+
+// =========================================
+// LISTA DE DONOS — GM
+// =========================================
+
+async function renderGMOwners() {
+
+  try {
+
+    const ownerList =
+      document.querySelector<HTMLDivElement>(
+        "#owner-list"
+      );
+
+    const ownerCount =
+      document.querySelector<HTMLSpanElement>(
+        "#owner-count"
+      );
+
+    const ballSummary =
+      document.querySelector<HTMLDivElement>(
+        "#gm-ball-summary"
+      );
+
+    if (
+      !ownerList ||
+      !ownerCount ||
+      !ballSummary
+    ) {
+      return;
+    }
+
+    const items =
+      await OBR.scene.items.getItems();
+
+    // Somente personagens
+    const characters =
+      items.filter(
+        (item) =>
+          item.layer === "CHARACTER"
+      );
+
+    // Jogadores conectados
+    const players =
+      await OBR.party.getPlayers();
+
+    // =====================================
+    // MAPA DE JOGADORES
+    // =====================================
+
+    const playerMap =
+      new Map<
+        string,
+        {
+          name: string;
+          id: string;
+        }
+      >();
+
+    for (const player of players) {
+
+      const storedName =
+        player.metadata[
+          `${ID}/name`
+        ];
+
+      const name =
+        typeof storedName === "string" &&
+        storedName.trim().length > 0
+          ? storedName
+          : `Jogador ${player.id.slice(0, 6)}`;
+
+      playerMap.set(
+        player.id,
+        {
+          name,
+          id: player.id,
+        }
+      );
+    }
+
+    // =====================================
+    // AGRUPAR PERSONAGENS
+    // =====================================
+
+    const grouped =
+      new Map<
+        string,
+        typeof characters
+      >();
+
+    const unassigned: typeof characters = [];
+
+    for (const character of characters) {
+
+      const ownerId =
+        character.metadata[
+          `${ID}/ownerId`
+        ];
+
+      if (
+        typeof ownerId !== "string"
+      ) {
+
+        unassigned.push(
+          character
+        );
+
+        continue;
+      }
+
+      const existing =
+        grouped.get(
+          ownerId
+        );
+
+      if (existing) {
+
+        existing.push(
+          character
+        );
+
+      } else {
+
+        grouped.set(
+          ownerId,
+          [character]
+        );
+      }
+    }
+
+    // =====================================
+    // CONTAGEM
+    // =====================================
+
+    ownerCount.textContent =
+      String(characters.length);
+
+    // =====================================
+    // GERAR LISTA
+    // =====================================
+
+    let html = "";
+
+    // Jogadores conectados
+    for (const player of players) {
+
+      const owned =
+        grouped.get(
+          player.id
+        ) || [];
+
+      const storedName =
+        player.metadata[
+          `${ID}/name`
+        ];
+
+      const playerName =
+        typeof storedName === "string" &&
+        storedName.trim().length > 0
+          ? storedName
+          : `Jogador ${player.id.slice(0, 6)}`;
+
+      html += `
+        <div class="owner-player">
+
+          <div class="owner-player-header">
+
+            <span class="owner-player-name">
+              👤 ${escapeHtml(
+                playerName
+              )}
+            </span>
+
+            <span class="owner-token-count">
+              ${owned.length}
+            </span>
+
+          </div>
+
+          <div class="owner-token-list">
+      `;
+
+      if (owned.length === 0) {
+
+        html += `
+            <div class="owner-empty">
+              Nenhum personagem atribuído
+            </div>
+        `;
+
+      } else {
+
+        for (const character of owned) {
+
+          html += `
+            <div class="owner-token">
+
+              <span>
+                ⚽
+                ${escapeHtml(
+                  character.name ||
+                  "Sem nome"
+                )}
+              </span>
+
+              <span class="owner-token-id">
+                ${escapeHtml(
+                  character.id.slice(0, 8)
+                )}
+              </span>
+
+            </div>
+          `;
+        }
+      }
+
+      html += `
+          </div>
+
+        </div>
+      `;
+    }
+
+    // =====================================
+    // PERSONAGENS SEM DONO
+    // =====================================
+
+    if (unassigned.length > 0) {
+
+      html += `
+        <div class="owner-player unassigned">
+
+          <div class="owner-player-header">
+
+            <span class="owner-player-name">
+              ⚠️ Sem dono
+            </span>
+
+            <span class="owner-token-count">
+              ${unassigned.length}
+            </span>
+
+          </div>
+
+          <div class="owner-token-list">
+      `;
+
+      for (const character of unassigned) {
+
+        html += `
+          <div class="owner-token">
+
+            <span>
+              ⚠️
+              ${escapeHtml(
+                character.name ||
+                "Sem nome"
+              )}
+            </span>
+
+            <span class="owner-token-id">
+              ${escapeHtml(
+                character.id.slice(0, 8)
+              )}
+            </span>
+
+          </div>
+        `;
+      }
+
+      html += `
+          </div>
+
+        </div>
+      `;
+    }
+
+    if (
+      characters.length === 0
+    ) {
+
+      html = `
+        <div class="empty">
+          Nenhum personagem encontrado.
+        </div>
+      `;
+    }
+
+    ownerList.innerHTML =
+      html;
+
+    // =====================================
+    // RESUMO DA BOLA
+    // =====================================
+
+    const metadata =
+      await OBR.scene.getMetadata();
+
+    const ballId =
+      metadata[
+        `${ID}/ball`
+      ];
+
+    const holderId =
+      metadata[
+        `${ID}/holder`
+      ];
+
+    const ball =
+      typeof ballId === "string"
+        ? items.find(
+            (item) =>
+              item.id === ballId
+          )
+        : undefined;
+
+    const holder =
+      typeof holderId === "string"
+        ? items.find(
+            (item) =>
+              item.id === holderId
+          )
+        : undefined;
+
+    ballSummary.innerHTML = `
+      <div class="gm-ball-row">
+
+        <span>
+          ⚽ Bola
+        </span>
+
+        <strong>
+          ${escapeHtml(
+            ball?.name ||
+            "Nenhuma definida"
+          )}
+        </strong>
+
+      </div>
+
+      <div class="gm-ball-row">
+
+        <span>
+          🏃 Posse
+        </span>
+
+        <strong>
+          ${escapeHtml(
+            holder?.name ||
+            "Bola livre"
+          )}
+        </strong>
+
+      </div>
+    `;
+
+  } catch (error) {
+
+    console.error(
+      "❌ Erro ao renderizar donos:",
       error
     );
   }
