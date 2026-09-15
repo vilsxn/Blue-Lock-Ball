@@ -4,12 +4,12 @@
   "manifest_version": 1,
   "author": "Blue Lock RPG",
   "description": "Sistema de posse e passe de bola para Owlbear Rodeo.",
-  "icon": "https://www.owlbear.rodeo/favicon.ico",
+  "icon": "https://blue-lock-ball.vercel.app/blue-lock-icon.png",
   "action": {
     "title": "Blue Lock Ball",
-    "icon": "https://www.owlbear.rodeo/favicon.ico",
-    "popover": "http://localhost:5173/",
-    "width": 330,
-    "height": 400
+    "icon": "https://blue-lock-ball.vercel.app/blue-lock-icon.png",
+    "popover": "https://blue-lock-ball.vercel.app/",
+    "width": 360,
+    "height": 320
   }
 }
