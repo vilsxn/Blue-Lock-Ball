@@ -1,0 +1,458 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 12px;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      #12345a 0%,
+      #111820 35%,
+      #080b0f 75%
+    );
+
+  color: #f4f7fb;
+}
+
+/* =========================================
+   PAINEL
+========================================= */
+
+.panel {
+  width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+/* =========================================
+   CABEÇALHO
+========================================= */
+
+.header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+h1 {
+  margin: 2px 0 2px;
+
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+
+  color: #ffffff;
+
+  text-shadow:
+    0 0 8px rgba(40, 150, 255, 0.65);
+}
+
+.subtitle {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 3px;
+
+  color: #349cff;
+}
+
+/* =========================================
+   SEÇÕES
+========================================= */
+
+section {
+  position: relative;
+
+  margin-top: 10px;
+  padding: 11px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(24, 31, 40, 0.98),
+      rgba(13, 18, 24, 0.98)
+    );
+
+  border: 1px solid #263746;
+  border-radius: 9px;
+
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+section::before {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+
+  width: 3px;
+
+  background: #168cff;
+
+  border-radius:
+    0 3px 3px 0;
+}
+
+h2 {
+  margin: 0 0 9px 4px;
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+
+  color: #7191ad;
+
+  text-transform: uppercase;
+}
+
+/* =========================================
+   STATUS
+========================================= */
+
+.status {
+  padding: 8px 9px;
+
+  border-radius: 6px;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.success {
+  background:
+    rgba(30, 170, 95, 0.12);
+
+  border:
+    1px solid rgba(70, 220, 135, 0.25);
+
+  color: #62e89a;
+}
+
+.danger {
+  background:
+    rgba(220, 55, 55, 0.12);
+
+  border:
+    1px solid rgba(255, 80, 80, 0.25);
+
+  color: #ff7070;
+}
+
+.warning {
+  background:
+    rgba(220, 170, 45, 0.12);
+
+  border:
+    1px solid rgba(255, 205, 80, 0.25);
+
+  color: #f3d56a;
+}
+
+/* =========================================
+   INFO DA BOLA
+========================================= */
+
+.info {
+  margin-top: 8px;
+  padding-left: 3px;
+
+  font-size: 13px;
+
+  color: #e7edf4;
+}
+
+.id {
+  margin-top: 4px;
+
+  font-family: monospace;
+  font-size: 8px;
+
+  color: #506274;
+
+  word-break: break-all;
+}
+
+/* =========================================
+   POSSE
+========================================= */
+
+.holder {
+  display: flex;
+
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(22, 140, 255, 0.18),
+      rgba(22, 140, 255, 0.03)
+    );
+
+  border:
+    1px solid rgba(45, 155, 255, 0.3);
+
+  border-radius: 7px;
+
+  font-size: 14px;
+
+  color: #ffffff;
+}
+
+/* =========================================
+   CABEÇALHO DO HISTÓRICO
+========================================= */
+
+.history-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 7px;
+}
+
+.history-header h2 {
+  margin-bottom: 0;
+}
+
+.history-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 5px;
+}
+
+/* =========================================
+   BOTÕES DO HISTÓRICO
+========================================= */
+
+.export-button,
+.clear-button {
+  width: 26px;
+  height: 26px;
+
+  padding: 0;
+
+  border-radius: 6px;
+
+  cursor: pointer;
+
+  font-size: 12px;
+
+  transition: 0.15s ease;
+}
+
+/* ---------- EXPORTAR ---------- */
+
+.export-button {
+  border: 1px solid #263f55;
+
+  background: #111c27;
+
+  color: #5eaeeb;
+}
+
+.export-button:hover {
+  background: #17324a;
+
+  border-color: #349cff;
+
+  color: #8acaff;
+
+  transform: scale(1.05);
+}
+
+/* ---------- LIMPAR ---------- */
+
+.clear-button {
+  border: 1px solid #3c2b2b;
+
+  background: #1c1719;
+
+  color: #d47777;
+}
+
+.clear-button:hover {
+  background: #382024;
+
+  border-color: #704047;
+
+  color: #ff8585;
+
+  transform: scale(1.05);
+}
+
+.export-button:active,
+.clear-button:active {
+  transform: scale(0.95);
+}
+
+/* =========================================
+   PASSES
+========================================= */
+
+.pass {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  min-height: 31px;
+
+  padding: 5px 3px;
+
+  border-bottom:
+    1px solid #202b35;
+
+  font-size: 11px;
+
+  color: #cbd5df;
+}
+
+.pass:last-child {
+  border-bottom: none;
+}
+
+.pass-info {
+  display: flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  min-width: 0;
+}
+
+.pass-info strong {
+  color: #ffffff;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+.pass-ball {
+  color: #349cff;
+}
+
+.arrow {
+  color: #526e87;
+
+  font-weight: bold;
+}
+
+/* =========================================
+   BOTÃO EXCLUIR PASSE
+========================================= */
+
+.delete-pass {
+  flex-shrink: 0;
+
+  width: 24px;
+  height: 24px;
+
+  margin-left: 6px;
+  padding: 0;
+
+  border: 1px solid transparent;
+  border-radius: 5px;
+
+  background: transparent;
+
+  color: #687783;
+
+  cursor: pointer;
+
+  font-size: 11px;
+
+  transition: 0.15s ease;
+}
+
+.delete-pass:hover {
+  background:
+    rgba(220, 55, 55, 0.15);
+
+  border-color:
+    rgba(255, 80, 80, 0.25);
+
+  color: #ff7070;
+}
+
+.delete-pass:active {
+  transform: scale(0.9);
+}
+
+/* =========================================
+   HISTÓRICO VAZIO
+========================================= */
+
+.empty {
+  padding: 7px 2px;
+
+  font-size: 11px;
+
+  color: #526272;
+
+  text-align: center;
+}
+
+/* =========================================
+   AJUDA DO PLAYER
+========================================= */
+
+.player-help {
+  margin-top: 10px;
+
+  padding: 9px 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(22, 140, 255, 0.12),
+      rgba(22, 140, 255, 0.03)
+    );
+
+  border:
+    1px solid rgba(45, 155, 255, 0.2);
+
+  border-radius: 7px;
+
+  color: #8298ac;
+
+  font-size: 10px;
+
+  line-height: 1.45;
+
+  text-align: center;
+}
+
+/* =========================================
+   SCROLLBAR
+========================================= */
+
+.panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+.panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel::-webkit-scrollbar-thumb {
+  background: #263f55;
+
+  border-radius: 10px;
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Blue Lock Ball",
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "author": "Blue Lock RPG",
+  "description": "Sistema de posse e passe de bola para Owlbear Rodeo.",
+  "icon": "https://www.owlbear.rodeo/favicon.ico",
+  "action": {
+    "title": "Blue Lock Ball",
+    "icon": "https://www.owlbear.rodeo/favicon.ico",
+    "popover": "http://localhost:5173/",
+    "width": 330,
+    "height": 400
+  }
+}
