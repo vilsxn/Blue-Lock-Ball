@@ -150,9 +150,11 @@ export function setupContextMenu() {
           max: 1,
           roles: ["GM", "PLAYER"],
 
-          // 🔐 Só aparece para quem pode atualizar
-          // o personagem selecionado.
-          permissions: ["CHARACTER_UPDATE"],
+          // 🔐 Precisa poder atualizar E ser dono
+          permissions: [
+            "CHARACTER_UPDATE",
+            "CHARACTER_OWNER_ONLY",
+          ],
 
           every: [
             {
@@ -219,9 +221,11 @@ export function setupContextMenu() {
           max: 1,
           roles: ["GM", "PLAYER"],
 
-          // 🔐 Só aparece para quem pode controlar
-          // o personagem selecionado.
-          permissions: ["CHARACTER_UPDATE"],
+          // 🔐 Precisa poder atualizar E ser dono
+          permissions: [
+            "CHARACTER_UPDATE",
+            "CHARACTER_OWNER_ONLY",
+          ],
 
           every: [
             {
