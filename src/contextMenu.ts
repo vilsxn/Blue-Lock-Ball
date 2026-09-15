@@ -149,6 +149,11 @@ export function setupContextMenu() {
         filter: {
           max: 1,
           roles: ["GM", "PLAYER"],
+
+          // 🔐 Só aparece para quem pode atualizar
+          // o personagem selecionado.
+          permissions: ["CHARACTER_UPDATE"],
+
           every: [
             {
               key: "layer",
@@ -161,6 +166,21 @@ export function setupContextMenu() {
     async onClick(context) {
       const player = context.items[0];
       if (!player) return;
+
+      // 🔐 Segunda barreira de segurança.
+      const role = await OBR.player.getRole();
+
+      if (role !== "GM") {
+        const hasPermission =
+          await OBR.player.hasPermission("CHARACTER_UPDATE");
+
+        if (!hasPermission) {
+          console.log(
+            "❌ Você não tem permissão para controlar este personagem."
+          );
+          return;
+        }
+      }
 
       const metadata = await OBR.scene.getMetadata();
 
@@ -198,6 +218,11 @@ export function setupContextMenu() {
         filter: {
           max: 1,
           roles: ["GM", "PLAYER"],
+
+          // 🔐 Só aparece para quem pode controlar
+          // o personagem selecionado.
+          permissions: ["CHARACTER_UPDATE"],
+
           every: [
             {
               key: "layer",
@@ -210,6 +235,21 @@ export function setupContextMenu() {
     async onClick(context) {
       const interceptor = context.items[0];
       if (!interceptor) return;
+
+      // 🔐 Segunda barreira de segurança.
+      const role = await OBR.player.getRole();
+
+      if (role !== "GM") {
+        const hasPermission =
+          await OBR.player.hasPermission("CHARACTER_UPDATE");
+
+        if (!hasPermission) {
+          console.log(
+            "❌ Você não tem permissão para controlar este personagem."
+          );
+          return;
+        }
+      }
 
       const metadata = await OBR.scene.getMetadata();
 
