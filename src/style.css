@@ -2,240 +2,199 @@
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
-  padding: 10px;
-  font-family: Arial, Helvetica, sans-serif;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  background: transparent;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  color: #f2f2f2;
+}
 
-  background:
-    radial-gradient(
-      circle at top right,
-      #12345a 0%,
-      #111820 35%,
-      #080b0f 75%
-    );
+body {
+  overflow-x: hidden;
+}
 
-  color: #f4f7fb;
+button {
+  font-family: inherit;
 }
 
 .panel {
   width: 100%;
-  max-height: 100%;
-  overflow-y: auto;
+  padding: 12px;
 }
-
-/* =========================================
-   CABEÇALHO
-   ========================================= */
 
 .header {
-  text-align: center;
-  margin-bottom: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+
+  border-bottom: 1px solid
+    rgba(255, 255, 255, 0.1);
 }
 
-h1 {
-  margin: 2px 0;
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: 1.5px;
+.header h1 {
+  margin: 0;
 
-  color: #ffffff;
-
-  text-shadow:
-    0 0 8px rgba(40, 150, 255, 0.65);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
 }
 
 .subtitle {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 3px;
-  color: #349cff;
+  margin-top: 2px;
+
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+
+  opacity: 0.45;
 }
 
 /* =========================================
-   ABAS GM
-   ========================================= */
+   ABAS
+========================================= */
 
 .gm-tabs {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
   gap: 5px;
 
-  margin-bottom: 9px;
-  padding: 4px;
-
-  background: #0d141c;
-
-  border:
-    1px solid #263746;
-
-  border-radius: 8px;
+  margin-bottom: 10px;
 }
 
 .gm-tab {
-  flex: 1;
+  border: 1px solid
+    rgba(255, 255, 255, 0.08);
 
-  min-height: 30px;
+  border-radius: 7px;
 
-  border:
-    1px solid transparent;
+  padding: 8px 6px;
 
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.55);
 
-  background: transparent;
-
-  color: #60768a;
+  font-size: 11px;
+  font-weight: 700;
 
   cursor: pointer;
 
-  font-size: 10px;
-  font-weight: 900;
-
   transition:
-    0.15s ease;
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .gm-tab:hover {
-  background:
-    rgba(22, 140, 255, 0.08);
-
-  color: #b9d7ef;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .gm-tab.active {
-  background:
-    linear-gradient(
-      135deg,
-      #155d96,
-      #123c62
-    );
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
 
-  border-color: #277fc0;
-
-  color: #ffffff;
-
-  box-shadow:
-    0 0 10px
-    rgba(22, 140, 255, 0.18);
+  border-color:
+    rgba(255, 255, 255, 0.2);
 }
 
 /* =========================================
    SEÇÕES
-   ========================================= */
+========================================= */
 
 section {
-  position: relative;
-
-  margin-top: 9px;
+  margin-bottom: 10px;
   padding: 10px;
 
-  background:
-    linear-gradient(
-      145deg,
-      rgba(24, 31, 40, 0.98),
-      rgba(13, 18, 24, 0.98)
-    );
+  border-radius: 9px;
 
-  border:
-    1px solid #263746;
-
-  border-radius: 8px;
-
-  box-shadow:
-    0 4px 14px
-    rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid
+    rgba(255, 255, 255, 0.06);
 }
 
-section::before {
-  content: "";
+section h2 {
+  margin: 0 0 8px;
 
-  position: absolute;
-
-  left: 0;
-  top: 8px;
-  bottom: 8px;
-
-  width: 3px;
-
-  background: #168cff;
-
-  border-radius:
-    0 3px 3px 0;
-}
-
-h2 {
-  margin:
-    0 0 8px 4px;
-
-  font-size: 10px;
-  font-weight: 900;
-
-  letter-spacing: 1.4px;
-
-  color: #7191ad;
+  font-size: 11px;
+  font-weight: 800;
 
   text-transform: uppercase;
+  letter-spacing: 0.7px;
+
+  opacity: 0.7;
+}
+
+.section-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-top h2 {
+  margin-bottom: 2px;
+}
+
+.section-description {
+  font-size: 9px;
+  opacity: 0.45;
 }
 
 /* =========================================
    STATUS
-   ========================================= */
+========================================= */
 
 .status {
   padding: 8px;
 
-  border-radius: 6px;
+  border-radius: 7px;
 
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 700;
 }
 
-.success {
-  background:
-    rgba(30, 170, 95, 0.12);
-
-  border:
-    1px solid
-    rgba(70, 220, 135, 0.25);
-
-  color: #62e89a;
+.status.success {
+  background: rgba(80, 200, 120, 0.12);
 }
 
-.danger {
-  background:
-    rgba(220, 55, 55, 0.12);
-
-  border:
-    1px solid
-    rgba(255, 80, 80, 0.25);
-
-  color: #ff7070;
+.status.danger {
+  background: rgba(255, 70, 70, 0.12);
 }
 
-.warning {
-  background:
-    rgba(220, 170, 45, 0.12);
-
-  border:
-    1px solid
-    rgba(255, 205, 80, 0.25);
-
-  color: #f3d56a;
+.status.neutral {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .info {
-  margin-top: 7px;
-  padding-left: 3px;
+  margin-top: 5px;
 
-  font-size: 12px;
+  font-size: 11px;
+  opacity: 0.75;
+}
 
-  color: #e7edf4;
+.small-text {
+  margin-top: 3px;
+
+  font-size: 9px;
+  opacity: 0.45;
 }
 
 /* =========================================
    POSSE
-   ========================================= */
+========================================= */
 
-.holder {
+.holder-card {
   display: flex;
   align-items: center;
 
@@ -243,47 +202,167 @@ h2 {
 
   padding: 9px;
 
-  background:
-    linear-gradient(
-      90deg,
-      rgba(22, 140, 255, 0.18),
-      rgba(22, 140, 255, 0.03)
-    );
+  border-radius: 8px;
 
-  border:
-    1px solid
-    rgba(45, 155, 255, 0.3);
-
-  border-radius: 7px;
-
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .holder-ball {
-  font-size: 21px;
+  font-size: 20px;
 }
 
 .holder-label {
   margin-bottom: 2px;
 
   font-size: 8px;
-  font-weight: 900;
+  font-weight: 800;
 
-  letter-spacing: 1.3px;
+  letter-spacing: 1px;
 
-  color: #5eaeeb;
+  opacity: 0.45;
+}
+
+.holder-card strong {
+  font-size: 12px;
+}
+
+/* =========================================
+   GERENCIAMENTO DE DONOS
+========================================= */
+
+.owner-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+.owner-player {
+  overflow: hidden;
+
+  border-radius: 8px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.07);
+
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.owner-player-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 8px 9px;
+
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.owner-player-name {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.owner-token-count {
+  padding: 2px 6px;
+
+  border-radius: 10px;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  background: rgba(255, 255, 255, 0.08);
+
+  opacity: 0.65;
+}
+
+.owner-token {
+  display: flex;
+  align-items: center;
+
+  padding: 7px 9px;
+
+  border-top: 1px solid
+    rgba(255, 255, 255, 0.05);
+}
+
+.owner-token-info {
+  min-width: 0;
+}
+
+.owner-token-name {
+  overflow: hidden;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-token-status {
+  margin-top: 2px;
+
+  font-size: 8px;
+
+  opacity: 0.5;
+}
+
+.owner-empty {
+  padding: 8px 9px;
+
+  font-size: 9px;
+
+  opacity: 0.4;
+}
+
+.owner-player.unassigned {
+  border-color:
+    rgba(255, 180, 60, 0.12);
+}
+
+.owner-unassigned {
+  background: rgba(255, 180, 60, 0.025);
+}
+
+/* =========================================
+   BOLA NO GERENCIAMENTO
+========================================= */
+
+.gm-ball-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.gm-ball-row strong {
+  font-size: 11px;
+}
+
+.ball-holder-small {
+  max-width: 48%;
+
+  padding: 5px 7px;
+
+  border-radius: 6px;
+
+  background: rgba(255, 255, 255, 0.05);
+
+  font-size: 9px;
+
+  text-align: right;
 }
 
 /* =========================================
    HISTÓRICO
-   ========================================= */
+========================================= */
 
 .history-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  margin-bottom: 7px;
 }
 
 .history-header h2 {
@@ -292,90 +371,44 @@ h2 {
 
 .history-actions {
   display: flex;
-  gap: 5px;
+  gap: 4px;
 }
 
-.export-button,
-.clear-button {
-  width: 27px;
-  height: 27px;
+.icon-button {
+  width: 25px;
+  height: 25px;
 
   padding: 0;
 
+  border: 1px solid
+    rgba(255, 255, 255, 0.08);
+
   border-radius: 6px;
 
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+
   cursor: pointer;
-
-  font-size: 12px;
-
-  transition:
-    0.15s ease;
 }
 
-.export-button {
-  border:
-    1px solid #263f55;
-
-  background: #111c27;
-
-  color: #5eaeeb;
+.icon-button:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.export-button:hover {
-  background: #17324a;
-
-  border-color: #349cff;
-
-  color: #8acaff;
-
-  transform:
-    scale(1.05);
+.danger-button:hover {
+  background: rgba(255, 60, 60, 0.12);
 }
-
-.clear-button {
-  border:
-    1px solid #3c2b2b;
-
-  background: #1c1719;
-
-  color: #d47777;
-}
-
-.clear-button:hover {
-  background: #382024;
-
-  border-color: #704047;
-
-  color: #ff8585;
-
-  transform:
-    scale(1.05);
-}
-
-.export-button:active,
-.clear-button:active {
-  transform:
-    scale(0.95);
-}
-
-/* =========================================
-   EVENTOS
-   ========================================= */
 
 .pass {
   display: flex;
   align-items: center;
 
-  min-height: 31px;
+  min-height: 30px;
 
-  padding: 5px 2px;
+  padding: 6px 2px;
 
-  border-bottom:
-    1px solid #202b35;
-
-  font-size: 10px;
-
-  color: #cbd5df;
+  border-bottom: 1px solid
+    rgba(255, 255, 255, 0.05);
 }
 
 .pass:last-child {
@@ -389,371 +422,80 @@ h2 {
   gap: 5px;
 
   min-width: 0;
+
+  font-size: 10px;
 }
 
 .pass-info strong {
-  max-width: 95px;
-
   overflow: hidden;
 
+  max-width: 95px;
+
   text-overflow: ellipsis;
-
   white-space: nowrap;
-
-  color: #ffffff;
 }
 
-.event-icon {
+.pass-ball {
   flex-shrink: 0;
 
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .arrow {
   flex-shrink: 0;
 
-  color: #526e87;
-
   font-size: 9px;
-  font-weight: 800;
+
+  opacity: 0.45;
 }
 
-.delete-pass {
-  flex-shrink: 0;
-
-  width: 24px;
-  height: 24px;
-
-  margin-left: auto;
-
-  padding: 0;
-
-  border:
-    1px solid transparent;
-
-  border-radius: 5px;
-
-  background: transparent;
-
-  color: #687783;
-
-  cursor: pointer;
-
-  font-size: 11px;
-}
-
-.delete-pass:hover {
-  background:
-    rgba(220, 55, 55, 0.15);
-
-  border-color:
-    rgba(255, 80, 80, 0.25);
-
-  color: #ff7070;
-}
-
-.empty {
-  padding: 8px 2px;
+.history-empty {
+  padding: 10px 4px;
 
   font-size: 10px;
-
-  color: #526272;
 
   text-align: center;
+
+  opacity: 0.4;
 }
 
 /* =========================================
-   GERENCIAMENTO
-   ========================================= */
-
-.section-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  margin-bottom: 8px;
-}
-
-.section-top h2 {
-  margin-bottom: 2px;
-}
-
-.section-description {
-  margin-left: 4px;
-
-  font-size: 9px;
-
-  color: #526779;
-}
-
-.gm-count {
-  min-width: 25px;
-  height: 22px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0 6px;
-
-  border:
-    1px solid #29445c;
-
-  border-radius: 6px;
-
-  background: #101b25;
-
-  color: #63b7f5;
-
-  font-size: 10px;
-  font-weight: 900;
-}
-
-/* =========================================
-   JOGADORES
-   ========================================= */
-
-.owner-list {
-  display: flex;
-  flex-direction: column;
-
-  gap: 6px;
-}
-
-.owner-player {
-  padding: 8px;
-
-  background:
-    linear-gradient(
-      135deg,
-      rgba(24, 31, 40, 0.95),
-      rgba(13, 18, 24, 0.95)
-    );
-
-  border:
-    1px solid #263746;
-
-  border-radius: 7px;
-}
-
-.owner-player.unassigned {
-  border-color:
-    rgba(220, 170, 45, 0.3);
-
-  background:
-    linear-gradient(
-      135deg,
-      rgba(70, 55, 20, 0.18),
-      rgba(20, 18, 13, 0.9)
-    );
-}
-
-.owner-player-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 8px;
-
-  margin-bottom: 6px;
-}
-
-.owner-player-name {
-  min-width: 0;
-
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-
-  white-space: nowrap;
-
-  color: #ffffff;
-
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.owner-token-count {
-  flex-shrink: 0;
-
-  min-width: 21px;
-  height: 19px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0 5px;
-
-  border-radius: 5px;
-
-  background: #101b25;
-
-  color: #5eaeeb;
-
-  font-size: 9px;
-  font-weight: 900;
-}
-
-.owner-token-list {
-  display: flex;
-  flex-direction: column;
-
-  gap: 4px;
-}
-
-.owner-token {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 8px;
-
-  min-height: 27px;
-
-  padding: 5px 7px;
-
-  background:
-    rgba(22, 140, 255, 0.06);
-
-  border:
-    1px solid
-    rgba(45, 155, 255, 0.12);
-
-  border-radius: 5px;
-
-  color: #d9e5ef;
-
-  font-size: 10px;
-}
-
-.owner-token > span:first-child {
-  min-width: 0;
-
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-
-  white-space: nowrap;
-}
-
-.owner-assigned {
-  flex-shrink: 0;
-
-  font-size: 7px;
-  font-weight: 900;
-
-  letter-spacing: 0.7px;
-
-  color: #4dbd83;
-}
-
-.owner-unassigned {
-  flex-shrink: 0;
-
-  font-size: 7px;
-  font-weight: 900;
-
-  letter-spacing: 0.7px;
-
-  color: #d5ad4e;
-}
-
-.owner-empty {
-  padding: 5px 3px;
-
-  color: #526272;
-
-  font-size: 9px;
-
-  font-style: italic;
-}
-
-/* =========================================
-   RESUMO DA BOLA
-   ========================================= */
-
-.gm-ball-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 10px;
-
-  min-height: 30px;
-
-  padding: 5px 3px;
-
-  border-bottom:
-    1px solid #202b35;
-
-  color: #71869a;
-
-  font-size: 10px;
-}
-
-.gm-ball-row:last-child {
-  border-bottom: none;
-}
-
-.gm-ball-row strong {
-  min-width: 0;
-
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-
-  white-space: nowrap;
-
-  color: #ffffff;
-
-  font-size: 11px;
-}
-
-/* =========================================
-   AJUDA DO PLAYER
-   ========================================= */
+   AJUDA DO JOGADOR
+========================================= */
 
 .player-help {
-  margin-top: 9px;
+  padding: 10px;
 
-  padding: 9px 10px;
+  border-radius: 8px;
 
-  background:
-    linear-gradient(
-      135deg,
-      rgba(22, 140, 255, 0.12),
-      rgba(22, 140, 255, 0.03)
-    );
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid
+    rgba(255, 255, 255, 0.06);
 
-  border:
-    1px solid
-    rgba(45, 155, 255, 0.2);
+  font-size: 10px;
+  line-height: 1.4;
 
-  border-radius: 7px;
+  opacity: 0.7;
+}
 
-  color: #8298ac;
-
-  font-size: 9px;
-
-  line-height: 1.45;
-
-  text-align: center;
+.player-help strong {
+  color: #fff;
+  opacity: 1;
 }
 
 /* =========================================
-   SCROLLBAR
-   ========================================= */
+   SCROLL
+========================================= */
 
-.panel::-webkit-scrollbar {
-  width: 4px;
+::-webkit-scrollbar {
+  width: 5px;
 }
 
-.panel::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.panel::-webkit-scrollbar-thumb {
-  background: #263f55;
+::-webkit-scrollbar-thumb {
   border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
 }
