@@ -4,8 +4,7 @@
 
 body {
   margin: 0;
-  padding: 12px;
-
+  padding: 10px;
   font-family: Arial, Helvetica, sans-serif;
 
   background:
@@ -19,10 +18,6 @@ body {
   color: #f4f7fb;
 }
 
-/* =========================================
-   PAINEL
-========================================= */
-
 .panel {
   width: 100%;
   max-height: 100%;
@@ -31,17 +26,16 @@ body {
 
 /* =========================================
    CABEÇALHO
-========================================= */
+   ========================================= */
 
 .header {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 
 h1 {
-  margin: 2px 0 2px;
-
-  font-size: 21px;
+  margin: 2px 0;
+  font-size: 20px;
   font-weight: 900;
   letter-spacing: 1.5px;
 
@@ -55,19 +49,84 @@ h1 {
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 3px;
-
   color: #349cff;
 }
 
 /* =========================================
+   ABAS GM
+   ========================================= */
+
+.gm-tabs {
+  display: flex;
+  gap: 5px;
+
+  margin-bottom: 9px;
+  padding: 4px;
+
+  background: #0d141c;
+
+  border:
+    1px solid #263746;
+
+  border-radius: 8px;
+}
+
+.gm-tab {
+  flex: 1;
+
+  min-height: 30px;
+
+  border:
+    1px solid transparent;
+
+  border-radius: 6px;
+
+  background: transparent;
+
+  color: #60768a;
+
+  cursor: pointer;
+
+  font-size: 10px;
+  font-weight: 900;
+
+  transition:
+    0.15s ease;
+}
+
+.gm-tab:hover {
+  background:
+    rgba(22, 140, 255, 0.08);
+
+  color: #b9d7ef;
+}
+
+.gm-tab.active {
+  background:
+    linear-gradient(
+      135deg,
+      #155d96,
+      #123c62
+    );
+
+  border-color: #277fc0;
+
+  color: #ffffff;
+
+  box-shadow:
+    0 0 10px
+    rgba(22, 140, 255, 0.18);
+}
+
+/* =========================================
    SEÇÕES
-========================================= */
+   ========================================= */
 
 section {
   position: relative;
 
-  margin-top: 10px;
-  padding: 11px;
+  margin-top: 9px;
+  padding: 10px;
 
   background:
     linear-gradient(
@@ -76,11 +135,14 @@ section {
       rgba(13, 18, 24, 0.98)
     );
 
-  border: 1px solid #263746;
-  border-radius: 9px;
+  border:
+    1px solid #263746;
+
+  border-radius: 8px;
 
   box-shadow:
-    0 4px 14px rgba(0, 0, 0, 0.35);
+    0 4px 14px
+    rgba(0, 0, 0, 0.3);
 }
 
 section::before {
@@ -89,8 +151,8 @@ section::before {
   position: absolute;
 
   left: 0;
-  top: 9px;
-  bottom: 9px;
+  top: 8px;
+  bottom: 8px;
 
   width: 3px;
 
@@ -101,11 +163,13 @@ section::before {
 }
 
 h2 {
-  margin: 0 0 9px 4px;
+  margin:
+    0 0 8px 4px;
 
   font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 1.5px;
+  font-weight: 900;
+
+  letter-spacing: 1.4px;
 
   color: #7191ad;
 
@@ -114,15 +178,15 @@ h2 {
 
 /* =========================================
    STATUS
-========================================= */
+   ========================================= */
 
 .status {
-  padding: 8px 9px;
+  padding: 8px;
 
   border-radius: 6px;
 
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 900;
 }
 
 .success {
@@ -130,7 +194,8 @@ h2 {
     rgba(30, 170, 95, 0.12);
 
   border:
-    1px solid rgba(70, 220, 135, 0.25);
+    1px solid
+    rgba(70, 220, 135, 0.25);
 
   color: #62e89a;
 }
@@ -140,7 +205,8 @@ h2 {
     rgba(220, 55, 55, 0.12);
 
   border:
-    1px solid rgba(255, 80, 80, 0.25);
+    1px solid
+    rgba(255, 80, 80, 0.25);
 
   color: #ff7070;
 }
@@ -150,46 +216,32 @@ h2 {
     rgba(220, 170, 45, 0.12);
 
   border:
-    1px solid rgba(255, 205, 80, 0.25);
+    1px solid
+    rgba(255, 205, 80, 0.25);
 
   color: #f3d56a;
 }
 
-/* =========================================
-   INFO DA BOLA
-========================================= */
-
 .info {
-  margin-top: 8px;
+  margin-top: 7px;
   padding-left: 3px;
 
-  font-size: 13px;
+  font-size: 12px;
 
   color: #e7edf4;
 }
 
-.id {
-  margin-top: 4px;
-
-  font-family: monospace;
-  font-size: 8px;
-
-  color: #506274;
-
-  word-break: break-all;
-}
-
 /* =========================================
    POSSE
-========================================= */
+   ========================================= */
 
 .holder {
   display: flex;
-
   align-items: center;
-  gap: 8px;
 
-  padding: 10px;
+  gap: 9px;
+
+  padding: 9px;
 
   background:
     linear-gradient(
@@ -199,22 +251,35 @@ h2 {
     );
 
   border:
-    1px solid rgba(45, 155, 255, 0.3);
+    1px solid
+    rgba(45, 155, 255, 0.3);
 
   border-radius: 7px;
-
-  font-size: 14px;
 
   color: #ffffff;
 }
 
+.holder-ball {
+  font-size: 21px;
+}
+
+.holder-label {
+  margin-bottom: 2px;
+
+  font-size: 8px;
+  font-weight: 900;
+
+  letter-spacing: 1.3px;
+
+  color: #5eaeeb;
+}
+
 /* =========================================
-   CABEÇALHO DO HISTÓRICO
-========================================= */
+   HISTÓRICO
+   ========================================= */
 
 .history-header {
   display: flex;
-
   align-items: center;
   justify-content: space-between;
 
@@ -227,20 +292,13 @@ h2 {
 
 .history-actions {
   display: flex;
-
-  align-items: center;
-
   gap: 5px;
 }
 
-/* =========================================
-   BOTÕES DO HISTÓRICO
-========================================= */
-
 .export-button,
 .clear-button {
-  width: 26px;
-  height: 26px;
+  width: 27px;
+  height: 27px;
 
   padding: 0;
 
@@ -250,13 +308,13 @@ h2 {
 
   font-size: 12px;
 
-  transition: 0.15s ease;
+  transition:
+    0.15s ease;
 }
 
-/* ---------- EXPORTAR ---------- */
-
 .export-button {
-  border: 1px solid #263f55;
+  border:
+    1px solid #263f55;
 
   background: #111c27;
 
@@ -270,13 +328,13 @@ h2 {
 
   color: #8acaff;
 
-  transform: scale(1.05);
+  transform:
+    scale(1.05);
 }
 
-/* ---------- LIMPAR ---------- */
-
 .clear-button {
-  border: 1px solid #3c2b2b;
+  border:
+    1px solid #3c2b2b;
 
   background: #1c1719;
 
@@ -290,32 +348,32 @@ h2 {
 
   color: #ff8585;
 
-  transform: scale(1.05);
+  transform:
+    scale(1.05);
 }
 
 .export-button:active,
 .clear-button:active {
-  transform: scale(0.95);
+  transform:
+    scale(0.95);
 }
 
 /* =========================================
-   PASSES
-========================================= */
+   EVENTOS
+   ========================================= */
 
 .pass {
   display: flex;
-
   align-items: center;
-  justify-content: space-between;
 
   min-height: 31px;
 
-  padding: 5px 3px;
+  padding: 5px 2px;
 
   border-bottom:
     1px solid #202b35;
 
-  font-size: 11px;
+  font-size: 10px;
 
   color: #cbd5df;
 }
@@ -326,7 +384,6 @@ h2 {
 
 .pass-info {
   display: flex;
-
   align-items: center;
 
   gap: 5px;
@@ -335,28 +392,31 @@ h2 {
 }
 
 .pass-info strong {
-  color: #ffffff;
+  max-width: 95px;
 
   overflow: hidden;
 
   text-overflow: ellipsis;
 
   white-space: nowrap;
+
+  color: #ffffff;
 }
 
-.pass-ball {
-  color: #349cff;
+.event-icon {
+  flex-shrink: 0;
+
+  font-size: 12px;
 }
 
 .arrow {
+  flex-shrink: 0;
+
   color: #526e87;
 
-  font-weight: bold;
+  font-size: 9px;
+  font-weight: 800;
 }
-
-/* =========================================
-   BOTÃO EXCLUIR PASSE
-========================================= */
 
 .delete-pass {
   flex-shrink: 0;
@@ -364,10 +424,13 @@ h2 {
   width: 24px;
   height: 24px;
 
-  margin-left: 6px;
+  margin-left: auto;
+
   padding: 0;
 
-  border: 1px solid transparent;
+  border:
+    1px solid transparent;
+
   border-radius: 5px;
 
   background: transparent;
@@ -377,8 +440,6 @@ h2 {
   cursor: pointer;
 
   font-size: 11px;
-
-  transition: 0.15s ease;
 }
 
 .delete-pass:hover {
@@ -391,18 +452,10 @@ h2 {
   color: #ff7070;
 }
 
-.delete-pass:active {
-  transform: scale(0.9);
-}
-
-/* =========================================
-   HISTÓRICO VAZIO
-========================================= */
-
 .empty {
-  padding: 7px 2px;
+  padding: 8px 2px;
 
-  font-size: 11px;
+  font-size: 10px;
 
   color: #526272;
 
@@ -410,11 +463,259 @@ h2 {
 }
 
 /* =========================================
+   GERENCIAMENTO
+   ========================================= */
+
+.section-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 8px;
+}
+
+.section-top h2 {
+  margin-bottom: 2px;
+}
+
+.section-description {
+  margin-left: 4px;
+
+  font-size: 9px;
+
+  color: #526779;
+}
+
+.gm-count {
+  min-width: 25px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 6px;
+
+  border:
+    1px solid #29445c;
+
+  border-radius: 6px;
+
+  background: #101b25;
+
+  color: #63b7f5;
+
+  font-size: 10px;
+  font-weight: 900;
+}
+
+/* =========================================
+   JOGADORES
+   ========================================= */
+
+.owner-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+.owner-player {
+  padding: 8px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(24, 31, 40, 0.95),
+      rgba(13, 18, 24, 0.95)
+    );
+
+  border:
+    1px solid #263746;
+
+  border-radius: 7px;
+}
+
+.owner-player.unassigned {
+  border-color:
+    rgba(220, 170, 45, 0.3);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(70, 55, 20, 0.18),
+      rgba(20, 18, 13, 0.9)
+    );
+}
+
+.owner-player-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+
+  margin-bottom: 6px;
+}
+
+.owner-player-name {
+  min-width: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  color: #ffffff;
+
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.owner-token-count {
+  flex-shrink: 0;
+
+  min-width: 21px;
+  height: 19px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 5px;
+
+  border-radius: 5px;
+
+  background: #101b25;
+
+  color: #5eaeeb;
+
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.owner-token-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.owner-token {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+
+  min-height: 27px;
+
+  padding: 5px 7px;
+
+  background:
+    rgba(22, 140, 255, 0.06);
+
+  border:
+    1px solid
+    rgba(45, 155, 255, 0.12);
+
+  border-radius: 5px;
+
+  color: #d9e5ef;
+
+  font-size: 10px;
+}
+
+.owner-token > span:first-child {
+  min-width: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+.owner-assigned {
+  flex-shrink: 0;
+
+  font-size: 7px;
+  font-weight: 900;
+
+  letter-spacing: 0.7px;
+
+  color: #4dbd83;
+}
+
+.owner-unassigned {
+  flex-shrink: 0;
+
+  font-size: 7px;
+  font-weight: 900;
+
+  letter-spacing: 0.7px;
+
+  color: #d5ad4e;
+}
+
+.owner-empty {
+  padding: 5px 3px;
+
+  color: #526272;
+
+  font-size: 9px;
+
+  font-style: italic;
+}
+
+/* =========================================
+   RESUMO DA BOLA
+   ========================================= */
+
+.gm-ball-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  min-height: 30px;
+
+  padding: 5px 3px;
+
+  border-bottom:
+    1px solid #202b35;
+
+  color: #71869a;
+
+  font-size: 10px;
+}
+
+.gm-ball-row:last-child {
+  border-bottom: none;
+}
+
+.gm-ball-row strong {
+  min-width: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  color: #ffffff;
+
+  font-size: 11px;
+}
+
+/* =========================================
    AJUDA DO PLAYER
-========================================= */
+   ========================================= */
 
 .player-help {
-  margin-top: 10px;
+  margin-top: 9px;
 
   padding: 9px 10px;
 
@@ -426,13 +727,14 @@ h2 {
     );
 
   border:
-    1px solid rgba(45, 155, 255, 0.2);
+    1px solid
+    rgba(45, 155, 255, 0.2);
 
   border-radius: 7px;
 
   color: #8298ac;
 
-  font-size: 10px;
+  font-size: 9px;
 
   line-height: 1.45;
 
@@ -441,7 +743,7 @@ h2 {
 
 /* =========================================
    SCROLLBAR
-========================================= */
+   ========================================= */
 
 .panel::-webkit-scrollbar {
   width: 4px;
@@ -453,6 +755,5 @@ h2 {
 
 .panel::-webkit-scrollbar-thumb {
   background: #263f55;
-
   border-radius: 10px;
 }
