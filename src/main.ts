@@ -116,8 +116,9 @@ async function setupPanel() {
   });
 
   if (isGM) {
-    OBR.party.onChange(() => {
-      void renderGMTab();
+    OBR.party.onChange(async () => {
+      await renderGMTab();
+      await renderPanel(true);
     });
   }
 }
@@ -133,16 +134,20 @@ function setupGMTabs() {
   const manageTab =
     document.querySelector<HTMLButtonElement>("#tab-manage");
 
-  matchTab?.addEventListener("click", () => {
+  matchTab?.addEventListener("click", async () => {
     currentGMTab = "match";
     updateGMTabs();
-    void renderGMTab();
+
+    await renderGMTab();
+    await renderPanel(true);
   });
 
-  manageTab?.addEventListener("click", () => {
+  manageTab?.addEventListener("click", async () => {
     currentGMTab = "manage";
     updateGMTabs();
-    void renderGMTab();
+
+    await renderGMTab();
+    await renderPanel(true);
   });
 }
 
