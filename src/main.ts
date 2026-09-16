@@ -105,21 +105,37 @@ async function setupPanel() {
     `;
   }
 
-  await renderPanel(isGM);
+  await refreshAll(isGM);
 
   OBR.scene.onMetadataChange(() => {
-    void renderPanel(isGM);
+    void refreshAll(isGM);
   });
 
   OBR.scene.items.onChange(() => {
-    void renderPanel(isGM);
+    void refreshAll(isGM);
   });
 
   if (isGM) {
     OBR.party.onChange(async () => {
       await renderGMTab();
-      await renderPanel(true);
+      await refreshAll(true);
     });
+  }
+}
+
+// =========================================
+// ATUALIZAR TUDO QUE ESTIVER VISÍVEL
+// =========================================
+
+async function refreshAll(isGM: boolean) {
+  await renderPanel(isGM);
+
+  // A aba "Gerenciar" tem seus próprios elementos
+  // (#owner-list, #manage-ball-status), que não são
+  // preenchidos por renderPanel(). Por isso, se ela
+  // estiver ativa, precisamos atualizá-la também.
+  if (isGM && currentGMTab === "manage") {
+    await renderGMManage();
   }
 }
 
@@ -139,7 +155,7 @@ function setupGMTabs() {
     updateGMTabs();
 
     await renderGMTab();
-    await renderPanel(true);
+    await refreshAll(true);
   });
 
   manageTab?.addEventListener("click", async () => {
@@ -147,7 +163,7 @@ function setupGMTabs() {
     updateGMTabs();
 
     await renderGMTab();
-    await renderPanel(true);
+    await refreshAll(true);
   });
 }
 

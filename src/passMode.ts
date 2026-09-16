@@ -1,16 +1,27 @@
-import OBR from "@owlbear-rodeo/sdk";
+import OBR, { Item } from "@owlbear-rodeo/sdk";
 
 const ID = "com.bluelock.ball";
 
 const MAX_HISTORY = 250;
 
-const ACTION_LOCK_KEY = `${ID}/action`;
-const ACTION_LOCK_TIMEOUT = 15000;
+// Chave onde fica a "solicitação" de ação (passe/interceptação).
+// Qualquer jogador pode escrever aqui — só o cliente do GM executa de fato.
+const PENDING_KEY = `${ID}/pendingAction`;
+
+// Tempo máximo que uma ação pode ficar pendente antes de ser
+// considerada expirada (ex: ninguém com papel de GM está conectado).
+const PENDING_TIMEOUT = 15000;
+
+// Tempo que o passador tem pra escolher o receptor após clicar em
+// "Passar bola", antes de cancelar automaticamente.
+const SELECT_RECEIVER_TIMEOUT = 15000;
 
 let waitingForReceiver = false;
 let passerId: string | null = null;
-let waitingActionId: string | null = null;
 let waitingTimeout: ReturnType<typeof setTimeout> | null = null;
+
+// Evita que o mesmo cliente GM processe a mesma ação duas vezes.
+const processedActionIds = new Set<string>();
 
 type HistoryEvent =
   | {
@@ -30,18 +41,29 @@ type HistoryEvent =
       time: number;
     };
 
-type BallAction = {
-  id: string;
-  type: "pass" | "interception";
-  playerId: string;
-  startedAt: number;
-};
+type PendingAction =
+  | {
+      id: string;
+      type: "pass";
+      passerId: string;
+      receiverId: string;
+      requestedAt: number;
+      claimedBy?: string;
+    }
+  | {
+      id: string;
+      type: "interception";
+      interceptorId: string;
+      requestedAt: number;
+      claimedBy?: string;
+    };
 
 // =========================================
 // CONFIGURAÇÃO
 // =========================================
 
 export function setupPassMode() {
+  // Escolha do receptor do passe — só interessa a quem iniciou o passe.
   OBR.player.onChange((player) => {
     if (!waitingForReceiver) return;
 
@@ -51,13 +73,9 @@ export function setupPassMode() {
 
     const receiverId = selection[0];
     const currentPasserId = passerId;
-    const currentActionId = waitingActionId;
-
-    console.log("🎯 Receptor selecionado:", receiverId);
 
     waitingForReceiver = false;
     passerId = null;
-    waitingActionId = null;
 
     if (waitingTimeout) {
       clearTimeout(waitingTimeout);
@@ -65,32 +83,37 @@ export function setupPassMode() {
     }
 
     if (!currentPasserId) {
-      console.log("❌ Não foi possível identificar o passador.");
-      void releaseAction(currentActionId);
-      return;
-    }
-
-    if (!currentActionId) {
-      console.log("❌ Ação de passe não encontrada.");
+      console.log(
+        "❌ Não foi possível identificar o passador."
+      );
       return;
     }
 
     if (currentPasserId === receiverId) {
-      console.log("❌ O receptor não pode ser o próprio passador.");
-      void releaseAction(currentActionId);
+      window.alert(
+        "❌ O receptor não pode ser o próprio passador."
+      );
       return;
     }
 
-    void performPass(
-      currentPasserId,
-      receiverId,
-      currentActionId
-    );
+    void requestPass(currentPasserId, receiverId);
   });
+
+  // Sempre que o metadata da cena mudar, verifica se surgiu uma ação
+  // pendente que este cliente (se for GM) precisa processar.
+  OBR.scene.onMetadataChange((metadata) => {
+    void tryProcessPendingAction(metadata);
+  });
+
+  // Cobre o caso de já existir uma ação pendente quando o GM abre
+  // (ou reabre) a extensão.
+  void OBR.scene
+    .getMetadata()
+    .then((metadata) => tryProcessPendingAction(metadata));
 }
 
 // =========================================
-// INICIAR PASSE
+// INICIAR PASSE (lado de quem está com a bola)
 // =========================================
 
 export function startPass(passerIdFromContext: string) {
@@ -98,18 +121,11 @@ export function startPass(passerIdFromContext: string) {
 }
 
 async function beginPass(passerIdFromContext: string) {
-  const actionId = createActionId();
+  const busy = await isBusy();
 
-  const locked = await tryStartAction({
-    id: actionId,
-    type: "pass",
-    playerId: passerIdFromContext,
-    startedAt: Date.now(),
-  });
-
-  if (!locked) {
-    console.log(
-      "🔒 A bola já está sendo utilizada por outra ação."
+  if (busy) {
+    window.alert(
+      "🔒 A bola já está sendo usada em outra ação. Aguarde alguns segundos e tente de novo."
     );
 
     return;
@@ -117,7 +133,6 @@ async function beginPass(passerIdFromContext: string) {
 
   waitingForReceiver = true;
   passerId = passerIdFromContext;
-  waitingActionId = actionId;
 
   console.log(
     "⚽ Passe iniciado por:",
@@ -128,24 +143,38 @@ async function beginPass(passerIdFromContext: string) {
     "⚽ Escolha o jogador que vai receber o passe."
   );
 
-  // Evita deixar a bola travada caso ninguém escolha um receptor.
   waitingTimeout = setTimeout(() => {
-    if (
-      waitingForReceiver &&
-      waitingActionId === actionId
-    ) {
+    if (waitingForReceiver) {
       console.log(
         "⏱️ Passe cancelado: nenhum receptor foi selecionado."
       );
 
       waitingForReceiver = false;
       passerId = null;
-      waitingActionId = null;
       waitingTimeout = null;
-
-      void releaseAction(actionId);
     }
-  }, ACTION_LOCK_TIMEOUT);
+  }, SELECT_RECEIVER_TIMEOUT);
+}
+
+async function requestPass(
+  passerIdVal: string,
+  receiverId: string
+) {
+  const request: PendingAction = {
+    id: createActionId(),
+    type: "pass",
+    passerId: passerIdVal,
+    receiverId,
+    requestedAt: Date.now(),
+  };
+
+  const ok = await publishPendingAction(request);
+
+  if (!ok) {
+    window.alert(
+      "🔒 A bola já está sendo usada em outra ação. Tente novamente em alguns segundos."
+    );
+  }
 }
 
 // =========================================
@@ -153,36 +182,24 @@ async function beginPass(passerIdFromContext: string) {
 // =========================================
 
 export function startInterception(interceptorId: string) {
-  void beginInterception(interceptorId);
+  void requestInterception(interceptorId);
 }
 
-async function beginInterception(interceptorId: string) {
-  const actionId = createActionId();
-
-  const locked = await tryStartAction({
-    id: actionId,
+async function requestInterception(interceptorId: string) {
+  const request: PendingAction = {
+    id: createActionId(),
     type: "interception",
-    playerId: interceptorId,
-    startedAt: Date.now(),
-  });
-
-  if (!locked) {
-    console.log(
-      "🔒 A bola já está sendo utilizada por outra ação."
-    );
-
-    return;
-  }
-
-  console.log(
-    "🛡️ Interceptação iniciada por:",
-    interceptorId
-  );
-
-  void performInterception(
     interceptorId,
-    actionId
-  );
+    requestedAt: Date.now(),
+  };
+
+  const ok = await publishPendingAction(request);
+
+  if (!ok) {
+    window.alert(
+      "🔒 A bola já está sendo usada em outra ação. Tente novamente em alguns segundos."
+    );
+  }
 }
 
 // =========================================
@@ -196,90 +213,59 @@ function createActionId(): string {
 }
 
 // =========================================
-// TRAVA DA BOLA
+// PUBLICAR / VERIFICAR SOLICITAÇÃO
 // =========================================
+// Qualquer cliente (GM ou Player) consegue escrever aqui: metadata
+// de cena é de escrita ampla, diferente de um item específico.
 
-async function tryStartAction(
-  action: BallAction
+async function isBusy(): Promise<boolean> {
+  try {
+    const metadata = await OBR.scene.getMetadata();
+    const current = metadata[PENDING_KEY];
+
+    if (!current || typeof current !== "object") {
+      return false;
+    }
+
+    const pending = current as Partial<PendingAction>;
+
+    const requestedAt =
+      typeof pending.requestedAt === "number"
+        ? pending.requestedAt
+        : 0;
+
+    return Date.now() - requestedAt < PENDING_TIMEOUT;
+  } catch (error) {
+    console.error(
+      "❌ Erro ao verificar ação pendente:",
+      error
+    );
+
+    return false;
+  }
+}
+
+async function publishPendingAction(
+  action: PendingAction
 ): Promise<boolean> {
   try {
-    const metadata =
-      await OBR.scene.getMetadata();
-
-    const currentAction =
-      metadata[ACTION_LOCK_KEY];
-
-    if (
-      currentAction &&
-      typeof currentAction === "object"
-    ) {
-      const existing =
-        currentAction as Partial<BallAction>;
-
-      const startedAt =
-        typeof existing.startedAt === "number"
-          ? existing.startedAt
-          : 0;
-
-      const elapsed =
-        Date.now() - startedAt;
-
-      if (
-        typeof existing.id === "string" &&
-        elapsed < ACTION_LOCK_TIMEOUT
-      ) {
-        console.log(
-          "🔒 Ação bloqueada:",
-          existing.type,
-          existing.id
-        );
-
-        return false;
-      }
-
-      console.log(
-        "⚠️ Ação antiga encontrada. Liberando trava."
-      );
+    if (await isBusy()) {
+      return false;
     }
 
     await OBR.scene.setMetadata({
-      [ACTION_LOCK_KEY]: action,
+      [PENDING_KEY]: action,
     });
 
-    // Confirma que a ação gravada é realmente a nossa.
-    const confirmation =
-      await OBR.scene.getMetadata();
-
-    const confirmedAction =
-      confirmation[ACTION_LOCK_KEY];
-
-    if (
-      !confirmedAction ||
-      typeof confirmedAction !== "object"
-    ) {
-      return false;
-    }
-
-    const confirmed =
-      confirmedAction as Partial<BallAction>;
-
-    if (confirmed.id !== action.id) {
-      console.log(
-        "🔒 Outra ação assumiu a bola antes da confirmação."
-      );
-
-      return false;
-    }
-
     console.log(
-      "🔓 Trava da bola adquirida:",
-      action.id
+      "📨 Ação solicitada:",
+      action
     );
 
     return true;
   } catch (error) {
     console.error(
-      "❌ Erro ao tentar bloquear a bola:",
+      "❌ Erro ao solicitar ação:",
       error
     );
 
@@ -287,165 +273,205 @@ async function tryStartAction(
   }
 }
 
-// =========================================
-// LIBERAR TRAVA
-// =========================================
-
-async function releaseAction(
-  actionId: string | null
-) {
-  if (!actionId) return;
-
+async function clearPendingAction(actionId: string) {
   try {
-    const metadata =
-      await OBR.scene.getMetadata();
-
-    const currentAction =
-      metadata[ACTION_LOCK_KEY];
+    const metadata = await OBR.scene.getMetadata();
+    const current = metadata[PENDING_KEY];
 
     if (
-      !currentAction ||
-      typeof currentAction !== "object"
+      current &&
+      typeof current === "object" &&
+      (current as Partial<PendingAction>).id === actionId
     ) {
-      return;
+      await OBR.scene.setMetadata({
+        [PENDING_KEY]: null,
+      });
     }
-
-    const action =
-      currentAction as Partial<BallAction>;
-
-    // Só a ação que possui a trava pode liberá-la.
-    if (action.id !== actionId) {
-      return;
-    }
-
-    await OBR.scene.setMetadata({
-      [ACTION_LOCK_KEY]: null,
-    });
-
-    console.log(
-      "🔓 Trava da bola liberada:",
-      actionId
-    );
   } catch (error) {
     console.error(
-      "❌ Erro ao liberar trava:",
+      "❌ Erro ao limpar ação pendente:",
       error
     );
   }
 }
 
 // =========================================
-// VERIFICAR TRAVA
+// PROCESSAMENTO (SÓ RODA NO CLIENTE DO GM)
 // =========================================
 
-async function isActionOwner(
+async function tryProcessPendingAction(
+  metadata: Record<string, unknown>
+) {
+  const pendingRaw = metadata[PENDING_KEY];
+
+  if (!pendingRaw || typeof pendingRaw !== "object") {
+    return;
+  }
+
+  const pending =
+    pendingRaw as Partial<PendingAction>;
+
+  if (typeof pending.id !== "string") return;
+
+  if (processedActionIds.has(pending.id)) return;
+
+  // Só o GM tem garantia de permissão pra mexer em qualquer token
+  // (inclusive a bola, que não é dele). Por isso só ele executa.
+  const role = await OBR.player.getRole();
+
+  if (role !== "GM") return;
+
+  const requestedAt =
+    typeof pending.requestedAt === "number"
+      ? pending.requestedAt
+      : 0;
+
+  // Ação velha demais (ex: ninguém com papel de GM estava conectado
+  // pra processá-la a tempo) — descarta sem executar.
+  if (Date.now() - requestedAt > PENDING_TIMEOUT) {
+    processedActionIds.add(pending.id);
+    await clearPendingAction(pending.id);
+    return;
+  }
+
+  const claimed = await claimAction(pending.id);
+
+  if (!claimed) return;
+
+  processedActionIds.add(pending.id);
+
+  if (
+    pending.type === "pass" &&
+    typeof pending.passerId === "string" &&
+    typeof pending.receiverId === "string"
+  ) {
+    await executePass(
+      pending.passerId,
+      pending.receiverId,
+      pending.id
+    );
+  } else if (
+    pending.type === "interception" &&
+    typeof pending.interceptorId === "string"
+  ) {
+    await executeInterception(
+      pending.interceptorId,
+      pending.id
+    );
+  } else {
+    await clearPendingAction(pending.id);
+  }
+}
+
+// Marca a ação como "reivindicada" por este GM, pra reduzir (não
+// eliminar por completo, mas isso é raríssimo) a chance de dois GMs
+// conectados ao mesmo tempo processarem a mesma ação.
+async function claimAction(
   actionId: string
 ): Promise<boolean> {
   try {
-    const metadata =
-      await OBR.scene.getMetadata();
+    const metadata = await OBR.scene.getMetadata();
+    const current = metadata[PENDING_KEY];
 
-    const currentAction =
-      metadata[ACTION_LOCK_KEY];
-
-    if (
-      !currentAction ||
-      typeof currentAction !== "object"
-    ) {
+    if (!current || typeof current !== "object") {
       return false;
     }
 
-    const action =
-      currentAction as Partial<BallAction>;
+    const pending =
+      current as Partial<PendingAction>;
 
-    return action.id === actionId;
-  } catch {
+    if (pending.id !== actionId) return false;
+    if (pending.claimedBy) return false;
+
+    await OBR.scene.setMetadata({
+      [PENDING_KEY]: {
+        ...pending,
+        claimedBy: OBR.player.id,
+      },
+    });
+
+    const confirmation =
+      await OBR.scene.getMetadata();
+
+    const confirmed =
+      confirmation[PENDING_KEY] as
+        | (Partial<PendingAction> & {
+            claimedBy?: string;
+          })
+        | undefined;
+
+    return (
+      confirmed?.id === actionId &&
+      confirmed?.claimedBy === OBR.player.id
+    );
+  } catch (error) {
+    console.error(
+      "❌ Erro ao reivindicar ação:",
+      error
+    );
+
     return false;
   }
 }
 
 // =========================================
-// PASSE
+// EXECUTAR PASSE (GM)
 // =========================================
 
-async function performPass(
-  passerId: string,
+async function executePass(
+  passerIdVal: string,
   receiverId: string,
   actionId: string
 ) {
   try {
-    if (!(await isActionOwner(actionId))) {
-      console.log(
-        "🔒 Passe cancelado: a ação não possui mais a trava."
-      );
+    const metadata = await OBR.scene.getMetadata();
 
-      return;
-    }
-
-    const metadata =
-      await OBR.scene.getMetadata();
-
-    const ballId =
-      metadata[`${ID}/ball`];
-
-    const holderId =
-      metadata[`${ID}/holder`];
+    const ballId = metadata[`${ID}/ball`];
+    const holderId = metadata[`${ID}/holder`];
 
     if (typeof ballId !== "string") {
       console.log("❌ Bola não encontrada.");
       return;
     }
 
-    if (holderId !== passerId) {
+    if (holderId !== passerIdVal) {
       console.log(
         "❌ O jogador não está mais com a bola."
       );
-
       return;
     }
 
-    const items =
-      await OBR.scene.items.getItems();
+    const items = await OBR.scene.items.getItems();
 
-    const ball =
-      items.find(
-        (item) => item.id === ballId
-      );
+    const ball = items.find(
+      (item) => item.id === ballId
+    );
 
-    const passer =
-      items.find(
-        (item) => item.id === passerId
-      );
+    const passer = items.find(
+      (item) => item.id === passerIdVal
+    );
 
-    const receiver =
-      items.find(
-        (item) => item.id === receiverId
-      );
+    const receiver = items.find(
+      (item) => item.id === receiverId
+    );
 
     if (!ball || !passer || !receiver) {
       console.log(
         "❌ Não foi possível encontrar os personagens."
       );
-
       return;
     }
 
-    const startX =
-      ball.position.x;
+    const startX = ball.position.x;
+    const startY = ball.position.y;
 
-    const startY =
-      ball.position.y;
-
-    const gridSize =
-      await OBR.scene.grid.getDpi();
+    const gridSize = await OBR.scene.grid.getDpi();
 
     const targetX =
-      receiver.position.x +
-      gridSize * 0.36;
+      receiver.position.x + gridSize * 0.36;
 
     const targetY =
-      receiver.position.y +
-      gridSize * 0.36;
+      receiver.position.y + gridSize * 0.36;
 
     await OBR.scene.items.updateItems(
       [ball.id],
@@ -459,156 +485,62 @@ async function performPass(
     );
 
     const updatedItems =
-      await OBR.scene.items.getItems(
-        [ball.id]
-      );
+      await OBR.scene.items.getItems([ball.id]);
 
-    const updatedBall =
-      updatedItems[0];
+    const updatedBall = updatedItems[0];
 
     if (!updatedBall) {
       console.log(
         "❌ Bola desapareceu durante o passe."
       );
-
       return;
     }
 
-    const interaction =
-      await OBR.interaction.startItemInteraction(
-        updatedBall
-      );
+    await animateBall(
+      updatedBall,
+      startX,
+      startY,
+      targetX,
+      targetY,
+      550
+    );
 
-    const [update, stop] =
-      interaction;
-
-    // =====================================
-    // ANIMAÇÃO POR TEMPO REAL
-    // =====================================
-
-    const duration = 550;
-
-    const startTime =
-      performance.now();
-
-    let animationFrame:
-      number | null = null;
-
-    const animate = (
-      currentTime: number
-    ) => {
-      const elapsed =
-        currentTime - startTime;
-
-      const progress =
-        Math.min(
-          elapsed / duration,
-          1
-        );
-
-      const smooth =
-        progress *
-        progress *
-        (3 - 2 * progress);
-
-      const x =
-        startX +
-        (targetX - startX) *
-          smooth;
-
-      const y =
-        startY +
-        (targetY - startY) *
-          smooth;
-
-      update((item) => {
-        item.position.x = x;
-        item.position.y = y;
-      });
-
-      if (progress >= 1) {
-        if (animationFrame !== null) {
-          cancelAnimationFrame(
-            animationFrame
-          );
-        }
-
-        update((item) => {
-          item.position.x = targetX;
-          item.position.y = targetY;
-        });
-
-        stop();
-
-        void finishPass(
-          ball.id,
-          passer.id,
-          receiver.id,
-          targetX,
-          targetY,
-          actionId
-        );
-
-        return;
-      }
-
-      animationFrame =
-        requestAnimationFrame(
-          animate
-        );
-    };
-
-    animationFrame =
-      requestAnimationFrame(
-        animate
-      );
+    await finishPass(
+      ball.id,
+      passer.id,
+      receiver.id,
+      targetX,
+      targetY
+    );
   } catch (error) {
     console.error(
       "❌ Erro durante o passe:",
       error
     );
-
-    await releaseAction(actionId);
+  } finally {
+    await clearPendingAction(actionId);
   }
 }
 
-// =========================================
-// FINALIZAR PASSE
-// =========================================
-
 async function finishPass(
   ballId: string,
-  passerId: string,
+  passerIdVal: string,
   receiverId: string,
   targetX: number,
-  targetY: number,
-  actionId: string
+  targetY: number
 ) {
   try {
-    if (!(await isActionOwner(actionId))) {
-      console.log(
-        "🔒 Passe ignorado: a trava pertence a outra ação."
-      );
+    const items = await OBR.scene.items.getItems();
 
-      return;
-    }
+    const passer = items.find(
+      (item) => item.id === passerIdVal
+    );
 
-    const items =
-      await OBR.scene.items.getItems();
+    const receiver = items.find(
+      (item) => item.id === receiverId
+    );
 
-    const passer =
-      items.find(
-        (item) => item.id === passerId
-      );
-
-    const receiver =
-      items.find(
-        (item) => item.id === receiverId
-      );
-
-    if (!passer || !receiver) {
-      return;
-    }
+    if (!passer || !receiver) return;
 
     await OBR.scene.items.updateItems(
       [ballId],
@@ -627,14 +559,10 @@ async function finishPass(
 
     await addHistoryEvent({
       type: "pass",
-      from: passerId,
+      from: passerIdVal,
       to: receiverId,
-      fromName:
-        passer.name ||
-        "Sem nome",
-      toName:
-        receiver.name ||
-        "Sem nome",
+      fromName: passer.name || "Sem nome",
+      toName: receiver.name || "Sem nome",
       time: Date.now(),
     });
 
@@ -646,42 +574,25 @@ async function finishPass(
       "❌ Erro ao finalizar passe:",
       error
     );
-  } finally {
-    await releaseAction(actionId);
   }
 }
 
 // =========================================
-// INTERCEPTAÇÃO
+// EXECUTAR INTERCEPTAÇÃO (GM)
 // =========================================
 
-async function performInterception(
+async function executeInterception(
   interceptorId: string,
   actionId: string
 ) {
   try {
-    if (!(await isActionOwner(actionId))) {
-      console.log(
-        "🔒 Interceptação cancelada: a ação não possui mais a trava."
-      );
+    const metadata = await OBR.scene.getMetadata();
 
-      return;
-    }
-
-    const metadata =
-      await OBR.scene.getMetadata();
-
-    const ballId =
-      metadata[`${ID}/ball`];
-
-    const holderId =
-      metadata[`${ID}/holder`];
+    const ballId = metadata[`${ID}/ball`];
+    const holderId = metadata[`${ID}/holder`];
 
     if (typeof ballId !== "string") {
-      console.log(
-        "❌ Bola não encontrada."
-      );
-
+      console.log("❌ Bola não encontrada.");
       return;
     }
 
@@ -689,73 +600,47 @@ async function performInterception(
       console.log(
         "❌ Ninguém está com a bola."
       );
-
       return;
     }
 
-    if (
-      holderId === interceptorId
-    ) {
+    if (holderId === interceptorId) {
       console.log(
         "❌ O jogador já está com a bola."
       );
-
       return;
     }
 
-    const items =
-      await OBR.scene.items.getItems();
+    const items = await OBR.scene.items.getItems();
 
-    const ball =
-      items.find(
-        (item) =>
-          item.id === ballId
-      );
+    const ball = items.find(
+      (item) => item.id === ballId
+    );
 
-    const holder =
-      items.find(
-        (item) =>
-          item.id === holderId
-      );
+    const holder = items.find(
+      (item) => item.id === holderId
+    );
 
-    const interceptor =
-      items.find(
-        (item) =>
-          item.id === interceptorId
-      );
+    const interceptor = items.find(
+      (item) => item.id === interceptorId
+    );
 
-    if (
-      !ball ||
-      !holder ||
-      !interceptor
-    ) {
+    if (!ball || !holder || !interceptor) {
       console.log(
         "❌ Não foi possível encontrar a bola ou um dos jogadores."
       );
-
       return;
     }
 
-    console.log(
-      `🛡️ ${interceptor.name} interceptou ${holder.name}`
-    );
+    const startX = ball.position.x;
+    const startY = ball.position.y;
 
-    const startX =
-      ball.position.x;
-
-    const startY =
-      ball.position.y;
-
-    const gridSize =
-      await OBR.scene.grid.getDpi();
+    const gridSize = await OBR.scene.grid.getDpi();
 
     const targetX =
-      interceptor.position.x +
-      gridSize * 0.36;
+      interceptor.position.x + gridSize * 0.36;
 
     const targetY =
-      interceptor.position.y +
-      gridSize * 0.36;
+      interceptor.position.y + gridSize * 0.36;
 
     await OBR.scene.items.updateItems(
       [ball.id],
@@ -769,161 +654,60 @@ async function performInterception(
     );
 
     const updatedItems =
-      await OBR.scene.items.getItems(
-        [ball.id]
-      );
+      await OBR.scene.items.getItems([ball.id]);
 
-    const updatedBall =
-      updatedItems[0];
+    const updatedBall = updatedItems[0];
 
     if (!updatedBall) {
-      console.log(
-        "❌ Bola desapareceu."
-      );
-
+      console.log("❌ Bola desapareceu.");
       return;
     }
 
-    const interaction =
-      await OBR.interaction.startItemInteraction(
-        updatedBall
-      );
+    await animateBall(
+      updatedBall,
+      startX,
+      startY,
+      targetX,
+      targetY,
+      450
+    );
 
-    const [update, stop] =
-      interaction;
-
-    // =====================================
-    // ANIMAÇÃO POR TEMPO REAL
-    // =====================================
-
-    const duration = 450;
-
-    const startTime =
-      performance.now();
-
-    let animationFrame:
-      number | null = null;
-
-    const animate = (
-      currentTime: number
-    ) => {
-      const elapsed =
-        currentTime - startTime;
-
-      const progress =
-        Math.min(
-          elapsed / duration,
-          1
-        );
-
-      const smooth =
-        progress *
-        progress *
-        (3 - 2 * progress);
-
-      const x =
-        startX +
-        (targetX - startX) *
-          smooth;
-
-      const y =
-        startY +
-        (targetY - startY) *
-          smooth;
-
-      update((item) => {
-        item.position.x = x;
-        item.position.y = y;
-      });
-
-      if (progress >= 1) {
-        if (animationFrame !== null) {
-          cancelAnimationFrame(
-            animationFrame
-          );
-        }
-
-        update((item) => {
-          item.position.x = targetX;
-          item.position.y = targetY;
-        });
-
-        stop();
-
-        void finishInterception(
-          ball.id,
-          holder.id,
-          interceptor.id,
-          targetX,
-          targetY,
-          actionId
-        );
-
-        return;
-      }
-
-      animationFrame =
-        requestAnimationFrame(
-          animate
-        );
-    };
-
-    animationFrame =
-      requestAnimationFrame(
-        animate
-      );
+    await finishInterception(
+      ball.id,
+      holder.id,
+      interceptor.id,
+      targetX,
+      targetY
+    );
   } catch (error) {
     console.error(
       "❌ Erro durante a interceptação:",
       error
     );
-
-    await releaseAction(actionId);
+  } finally {
+    await clearPendingAction(actionId);
   }
 }
-
-// =========================================
-// FINALIZAR INTERCEPTAÇÃO
-// =========================================
 
 async function finishInterception(
   ballId: string,
   holderId: string,
   interceptorId: string,
   targetX: number,
-  targetY: number,
-  actionId: string
+  targetY: number
 ) {
   try {
-    if (!(await isActionOwner(actionId))) {
-      console.log(
-        "🔒 Interceptação ignorada: a trava pertence a outra ação."
-      );
+    const items = await OBR.scene.items.getItems();
 
-      return;
-    }
+    const holder = items.find(
+      (item) => item.id === holderId
+    );
 
-    const items =
-      await OBR.scene.items.getItems();
+    const interceptor = items.find(
+      (item) => item.id === interceptorId
+    );
 
-    const holder =
-      items.find(
-        (item) =>
-          item.id === holderId
-      );
-
-    const interceptor =
-      items.find(
-        (item) =>
-          item.id === interceptorId
-      );
-
-    if (
-      !holder ||
-      !interceptor
-    ) {
-      return;
-    }
+    if (!holder || !interceptor) return;
 
     await OBR.scene.items.updateItems(
       [ballId],
@@ -931,27 +715,21 @@ async function finishInterception(
         for (const item of items) {
           item.position.x = targetX;
           item.position.y = targetY;
-          item.attachedTo =
-            interceptorId;
+          item.attachedTo = interceptorId;
         }
       }
     );
 
     await OBR.scene.setMetadata({
-      [`${ID}/holder`]:
-        interceptorId,
+      [`${ID}/holder`]: interceptorId,
     });
 
     await addHistoryEvent({
       type: "interception",
       from: holderId,
       to: interceptorId,
-      fromName:
-        holder.name ||
-        "Sem nome",
-      toName:
-        interceptor.name ||
-        "Sem nome",
+      fromName: holder.name || "Sem nome",
+      toName: interceptor.name || "Sem nome",
       time: Date.now(),
     });
 
@@ -963,41 +741,139 @@ async function finishInterception(
       "❌ Erro ao finalizar interceptação:",
       error
     );
-  } finally {
-    await releaseAction(actionId);
   }
+}
+
+// =========================================
+// ANIMAÇÃO COMPARTILHADA
+// =========================================
+// Sempre resolve a Promise, mesmo se algo falhar no meio do caminho —
+// isso é o que garante que a trava (pendingAction) nunca fique presa
+// pra sempre por causa de um erro no meio da animação.
+
+function animateBall(
+  ball: Item,
+  startX: number,
+  startY: number,
+  targetX: number,
+  targetY: number,
+  duration: number
+): Promise<void> {
+  return new Promise((resolve) => {
+    void (async () => {
+      let stopInteraction: (() => void) | null = null;
+
+      try {
+        const interaction =
+          await OBR.interaction.startItemInteraction(
+            ball
+          );
+
+        const [update, stop] = interaction;
+        stopInteraction = stop;
+
+        const startTime = performance.now();
+
+        let animationFrame: number | null = null;
+
+        const animate = (currentTime: number) => {
+          try {
+            const elapsed = currentTime - startTime;
+
+            const progress = Math.min(
+              elapsed / duration,
+              1
+            );
+
+            const smooth =
+              progress * progress * (3 - 2 * progress);
+
+            const x =
+              startX + (targetX - startX) * smooth;
+
+            const y =
+              startY + (targetY - startY) * smooth;
+
+            update((item) => {
+              item.position.x = x;
+              item.position.y = y;
+            });
+
+            if (progress >= 1) {
+              if (animationFrame !== null) {
+                cancelAnimationFrame(animationFrame);
+              }
+
+              update((item) => {
+                item.position.x = targetX;
+                item.position.y = targetY;
+              });
+
+              stop();
+              resolve();
+              return;
+            }
+
+            animationFrame =
+              requestAnimationFrame(animate);
+          } catch (error) {
+            console.error(
+              "❌ Erro durante a animação:",
+              error
+            );
+
+            try {
+              stop();
+            } catch {
+              // já parada ou inválida, ignora
+            }
+
+            resolve();
+          }
+        };
+
+        animationFrame =
+          requestAnimationFrame(animate);
+      } catch (error) {
+        console.error(
+          "❌ Erro ao iniciar animação:",
+          error
+        );
+
+        try {
+          stopInteraction?.();
+        } catch {
+          // ignora
+        }
+
+        resolve();
+      }
+    })();
+  });
 }
 
 // =========================================
 // HISTÓRICO
 // =========================================
 
-async function addHistoryEvent(
-  event: HistoryEvent
-) {
-  const metadata =
-    await OBR.scene.getMetadata();
+async function addHistoryEvent(event: HistoryEvent) {
+  const metadata = await OBR.scene.getMetadata();
 
-  const oldHistory =
-    metadata[`${ID}/history`];
+  const oldHistory = metadata[`${ID}/history`];
 
-  const history: HistoryEvent[] =
-    Array.isArray(oldHistory)
-      ? oldHistory
-      : [];
+  const history: HistoryEvent[] = Array.isArray(
+    oldHistory
+  )
+    ? oldHistory
+    : [];
 
-  const updatedHistory = [
-    ...history,
-    event,
-  ].slice(-MAX_HISTORY);
+  const updatedHistory = [...history, event].slice(
+    -MAX_HISTORY
+  );
 
   await OBR.scene.setMetadata({
-    [`${ID}/history`]:
-      updatedHistory,
+    [`${ID}/history`]: updatedHistory,
   });
 
-  console.log(
-    "📜 Evento registrado:",
-    event
-  );
+  console.log("📜 Evento registrado:", event);
 }
