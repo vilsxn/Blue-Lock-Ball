@@ -699,8 +699,10 @@ async function exportHistory() {
 
     let text =
       "BLUE LOCK RPG\n";
+
     text +=
       "RELATÓRIO DA PARTIDA\n";
+
     text +=
       "========================================\n\n";
 
@@ -719,24 +721,30 @@ async function exportHistory() {
 
     text +=
       "========================================\n";
+
     text +=
       "ESTATÍSTICAS\n";
+
     text +=
       "========================================\n\n";
 
     for (const player of stats.values()) {
       text +=
         `${player.name}\n`;
+
       text +=
         `  Passes: ${player.passes}\n`;
+
       text +=
         `  Desarmes/Interceptações: ${player.interceptions}\n\n`;
     }
 
     text +=
       "========================================\n";
+
     text +=
       "HISTÓRICO COMPLETO\n";
+
     text +=
       "========================================\n\n";
 
@@ -789,7 +797,9 @@ async function exportHistory() {
         .replaceAll("/", "-")}.txt`;
 
     document.body.appendChild(link);
+
     link.click();
+
     document.body.removeChild(link);
 
     URL.revokeObjectURL(url);
@@ -966,7 +976,7 @@ async function renderPanel(
     historyContainer.innerHTML =
       visibleHistory
         .map(
-          (event, index) => {
+          (event) => {
             const fromName =
               event.fromName ||
               "Desconhecido";
