@@ -4,9 +4,15 @@ import { setupContextMenu } from "./contextMenu";
 import { setupPassMode } from "./passMode";
 
 const ID = "com.bluelock.ball";
+
 const VISIBLE_HISTORY = 8;
 
-const app = document.querySelector<HTMLDivElement>("#app")!;
+const app =
+  document.querySelector<HTMLDivElement>("#app")!;
+
+// =========================================
+// TIPOS
+// =========================================
 
 type HistoryEvent = {
   type: "pass" | "interception" | "steal";
@@ -17,19 +23,13 @@ type HistoryEvent = {
   time?: number;
 };
 
-type PlayerInfo = {
-  id: string;
-  name: string;
-};
-
-let currentGMTab: "match" | "manage" = "match";
-
 // =========================================
 // CONFIGURAR PAINEL
 // =========================================
 
 async function setupPanel() {
   const role = await OBR.player.getRole();
+
   const isGM = role === "GM";
 
   if (isGM) {
@@ -37,188 +37,52 @@ async function setupPanel() {
       <div class="panel">
 
         <div class="header">
-          <div>
-            <h1>⚽ Blue Lock Ball</h1>
-            <div class="subtitle">MATCH CONTROL</div>
-          </div>
-        </div>
+          <h1>
+            ⚽ Blue Lock Ball
+          </h1>
 
-        <div class="gm-tabs">
-          <button id="tab-match" class="gm-tab active">
-            📊 Partida
-          </button>
-
-          <button id="tab-manage" class="gm-tab">
-            👑 Gerenciar
-          </button>
-        </div>
-
-        <div id="gm-content"></div>
-
-      </div>
-    `;
-
-    setupGMTabs();
-    await renderGMTab();
-  } else {
-    app.innerHTML = `
-      <div class="panel">
-
-        <div class="header">
-          <div>
-            <h1>⚽ Blue Lock Ball</h1>
-            <div class="subtitle">MATCH CONTROL</div>
+          <div class="subtitle">
+            MATCH CONTROL
           </div>
         </div>
 
         <section>
-          <h2>Posse Atual</h2>
 
-          <div id="ball-holder">
-            Carregando...
-          </div>
-        </section>
-
-        <section>
-          <div class="history-header">
-            <h2>Histórico</h2>
-          </div>
-
-          <div id="pass-history">
-            Nenhum evento ainda.
-          </div>
-        </section>
-
-        <div class="player-help">
-          <strong>⚽ Passe</strong>
-          <br>
-          Clique com o botão direito no seu personagem.
-          <br><br>
-
-          <strong>🛡️ Interceptar</strong>
-          <br>
-          Selecione seu personagem e escolha
-          "Interceptar".
-        </div>
-
-      </div>
-    `;
-  }
-
-  await refreshAll(isGM);
-
-  OBR.scene.onMetadataChange(() => {
-    void refreshAll(isGM);
-  });
-
-  OBR.scene.items.onChange(() => {
-    void refreshAll(isGM);
-  });
-
-  if (isGM) {
-    OBR.party.onChange(async () => {
-      await renderGMTab();
-      await refreshAll(true);
-    });
-  }
-}
-
-// =========================================
-// ATUALIZAR TUDO QUE ESTIVER VISÍVEL
-// =========================================
-
-async function refreshAll(isGM: boolean) {
-  await renderPanel(isGM);
-
-  // A aba "Gerenciar" tem seus próprios elementos
-  // (#owner-list, #manage-ball-status), que não são
-  // preenchidos por renderPanel(). Por isso, se ela
-  // estiver ativa, precisamos atualizá-la também.
-  if (isGM && currentGMTab === "manage") {
-    await renderGMManage();
-  }
-}
-
-// =========================================
-// ABAS DO GM
-// =========================================
-
-function setupGMTabs() {
-  const matchTab =
-    document.querySelector<HTMLButtonElement>("#tab-match");
-
-  const manageTab =
-    document.querySelector<HTMLButtonElement>("#tab-manage");
-
-  matchTab?.addEventListener("click", async () => {
-    currentGMTab = "match";
-    updateGMTabs();
-
-    await renderGMTab();
-    await refreshAll(true);
-  });
-
-  manageTab?.addEventListener("click", async () => {
-    currentGMTab = "manage";
-    updateGMTabs();
-
-    await renderGMTab();
-    await refreshAll(true);
-  });
-}
-
-function updateGMTabs() {
-  const matchTab =
-    document.querySelector<HTMLButtonElement>("#tab-match");
-
-  const manageTab =
-    document.querySelector<HTMLButtonElement>("#tab-manage");
-
-  matchTab?.classList.toggle(
-    "active",
-    currentGMTab === "match"
-  );
-
-  manageTab?.classList.toggle(
-    "active",
-    currentGMTab === "manage"
-  );
-}
-
-async function renderGMTab() {
-  const content =
-    document.querySelector<HTMLDivElement>("#gm-content");
-
-  if (!content) return;
-
-  if (currentGMTab === "match") {
-    content.innerHTML = `
-      <div class="gm-content">
-
-        <section>
-          <h2>Status da Bola</h2>
+          <h2>
+            Status da Bola
+          </h2>
 
           <div id="ball-status">
             Carregando...
           </div>
+
         </section>
 
         <section>
-          <h2>Posse Atual</h2>
+
+          <h2>
+            Posse Atual
+          </h2>
 
           <div id="ball-holder">
             Carregando...
           </div>
+
         </section>
 
         <section>
+
           <div class="history-header">
-            <h2>Histórico</h2>
+
+            <h2>
+              Histórico da Partida
+            </h2>
 
             <div class="history-actions">
+
               <button
                 id="export-history"
-                class="icon-button"
+                class="export-button"
                 title="Exportar histórico"
               >
                 📄
@@ -226,421 +90,156 @@ async function renderGMTab() {
 
               <button
                 id="clear-history"
-                class="icon-button danger-button"
+                class="clear-button"
                 title="Limpar histórico"
               >
                 🧹
               </button>
+
             </div>
+
           </div>
 
           <div id="pass-history">
             Nenhum evento ainda.
           </div>
+
         </section>
 
       </div>
     `;
 
     setupHistoryButtons();
+
   } else {
-    content.innerHTML = `
-      <div class="gm-content">
+
+    app.innerHTML = `
+      <div class="panel">
+
+        <div class="header">
+
+          <h1>
+            ⚽ Blue Lock Ball
+          </h1>
+
+          <div class="subtitle">
+            MATCH CONTROL
+          </div>
+
+        </div>
 
         <section>
-          <div class="section-top">
-            <div>
-              <h2>👥 Jogadores</h2>
-              <div class="section-description">
-                Personagens atribuídos a cada jogador.
-              </div>
-            </div>
-          </div>
 
-          <div id="owner-list">
+          <h2>
+            Posse Atual
+          </h2>
+
+          <div id="ball-holder">
             Carregando...
           </div>
+
         </section>
 
         <section>
-          <h2>⚽ Bola</h2>
 
-          <div id="manage-ball-status">
-            Carregando...
+          <h2>
+            Histórico da Partida
+          </h2>
+
+          <div id="pass-history">
+            Nenhum evento ainda.
           </div>
+
         </section>
 
+        <div class="player-help">
+
+          ⚽ Para passar a bola,
+          clique com o botão direito
+          no seu personagem.
+
+          <br><br>
+
+          🛡️ Para interceptar,
+          selecione seu personagem
+          e escolha "Interceptar".
+
+        </div>
+
       </div>
     `;
-
-    await renderGMManage();
   }
+
+  await renderPanel(isGM);
+
+  OBR.scene.onMetadataChange(() => {
+    void renderPanel(isGM);
+  });
+
+  OBR.scene.items.onChange(() => {
+    void renderPanel(isGM);
+  });
 }
 
 // =========================================
-// GERENCIAMENTO DE DONOS
-// =========================================
-
-async function getConnectedPlayers(): Promise<PlayerInfo[]> {
-  const players = await OBR.party.getPlayers();
-
-  return players
-    .map((player) => {
-      const storedName =
-        player.metadata?.[`${ID}/name`];
-
-      return {
-        id: player.id,
-
-        name:
-          typeof storedName === "string" &&
-          storedName.trim()
-            ? storedName
-            : player.name || "Jogador",
-      };
-    })
-    .sort((a, b) =>
-      a.name.localeCompare(
-        b.name,
-        "pt-BR"
-      )
-    );
-}
-
-async function renderGMManage() {
-  const container =
-    document.querySelector<HTMLDivElement>(
-      "#owner-list"
-    );
-
-  const ballStatus =
-    document.querySelector<HTMLDivElement>(
-      "#manage-ball-status"
-    );
-
-  if (!container || !ballStatus) return;
-
-  const items =
-    await OBR.scene.items.getItems();
-
-  const characters = items.filter(
-    (item) =>
-      item.layer === "CHARACTER"
-  );
-
-  const players =
-    await getConnectedPlayers();
-
-  // =========================================
-  // SINCRONIZAR DONOS AUTOMÁTICOS
-  // =========================================
-
-  for (const character of characters) {
-    const metadata = character.metadata || {};
-
-    const currentOwner =
-      metadata[`${ID}/ownerId`];
-
-    const creatorId =
-      character.createdUserId;
-
-    if (
-      typeof currentOwner !== "string" &&
-      typeof creatorId === "string"
-    ) {
-      await OBR.scene.items.updateItems(
-        [character.id],
-        (items) => {
-          for (const item of items) {
-            item.metadata[`${ID}/ownerId`] =
-              creatorId;
-          }
-        }
-      );
-    }
-  }
-
-  // Buscar novamente após sincronização
-  const updatedItems =
-    await OBR.scene.items.getItems();
-
-  const updatedCharacters =
-    updatedItems.filter(
-      (item) =>
-        item.layer === "CHARACTER"
-    );
-
-  // =========================================
-  // AGRUPAR
-  // =========================================
-
-  const assigned = new Map<
-    string,
-    typeof updatedCharacters
-  >();
-
-  for (const player of players) {
-    assigned.set(
-      player.id,
-      []
-    );
-  }
-
-  const unassigned: typeof updatedCharacters = [];
-
-  for (const character of updatedCharacters) {
-    const ownerId =
-      character.metadata?.[
-        `${ID}/ownerId`
-      ];
-
-    if (
-      typeof ownerId === "string" &&
-      assigned.has(ownerId)
-    ) {
-      assigned
-        .get(ownerId)!
-        .push(character);
-    } else {
-      unassigned.push(character);
-    }
-  }
-
-  // =========================================
-  // HTML
-  // =========================================
-
-  let html = "";
-
-  for (const player of players) {
-    const playerCharacters =
-      assigned.get(player.id) || [];
-
-    html += `
-      <div class="owner-player">
-
-        <div class="owner-player-header">
-
-          <div class="owner-player-name">
-            👤 ${escapeHtml(player.name)}
-          </div>
-
-          <div class="owner-token-count">
-            ${playerCharacters.length}
-            ${
-              playerCharacters.length === 1
-                ? "personagem"
-                : "personagens"
-            }
-          </div>
-
-        </div>
-    `;
-
-    if (playerCharacters.length === 0) {
-      html += `
-        <div class="owner-empty">
-          Nenhum personagem atribuído.
-        </div>
-      `;
-    } else {
-      for (const character of playerCharacters) {
-        html += `
-          <div class="owner-token owner-assigned">
-
-            <div class="owner-token-info">
-
-              <div class="owner-token-name">
-                ${escapeHtml(
-                  character.name ||
-                    "Sem nome"
-                )}
-              </div>
-
-              <div class="owner-token-status">
-                🟢 Dono definido
-              </div>
-
-            </div>
-
-          </div>
-        `;
-      }
-    }
-
-    html += `</div>`;
-  }
-
-  // =========================================
-  // SEM DONO
-  // =========================================
-
-  html += `
-    <div class="owner-player unassigned">
-
-      <div class="owner-player-header">
-
-        <div class="owner-player-name">
-          ⚠️ Sem dono
-        </div>
-
-        <div class="owner-token-count">
-          ${unassigned.length}
-        </div>
-
-      </div>
-  `;
-
-  if (unassigned.length === 0) {
-    html += `
-      <div class="owner-empty">
-        Todos os personagens possuem dono.
-      </div>
-    `;
-  } else {
-    for (const character of unassigned) {
-      html += `
-        <div class="owner-token owner-unassigned">
-
-          <div class="owner-token-info">
-
-            <div class="owner-token-name">
-              ${escapeHtml(
-                character.name ||
-                  "Sem nome"
-              )}
-            </div>
-
-            <div class="owner-token-status">
-              🔴 Precisa definir dono pelo menu do token
-            </div>
-
-          </div>
-
-        </div>
-      `;
-    }
-  }
-
-  html += `</div>`;
-
-  container.innerHTML = html;
-
-  // =========================================
-  // STATUS DA BOLA
-  // =========================================
-
-  const metadata =
-    await OBR.scene.getMetadata();
-
-  const ballId =
-    metadata[`${ID}/ball`];
-
-  if (
-    typeof ballId !== "string"
-  ) {
-    ballStatus.innerHTML = `
-      <div class="status danger">
-        🔴 Nenhuma bola definida
-      </div>
-    `;
-    return;
-  }
-
-  const ball =
-    updatedItems.find(
-      (item) =>
-        item.id === ballId
-    );
-
-  if (!ball) {
-    ballStatus.innerHTML = `
-      <div class="status danger">
-        🔴 Bola não encontrada
-      </div>
-    `;
-    return;
-  }
-
-  const holderId =
-    metadata[`${ID}/holder`];
-
-  const holder =
-    updatedItems.find(
-      (item) =>
-        item.id === holderId
-    );
-
-  ballStatus.innerHTML = `
-    <div class="gm-ball-row">
-
-      <div>
-        <strong>🟢 Bola definida</strong>
-
-        <div class="small-text">
-          ${escapeHtml(
-            ball.name ||
-              "Bola"
-          )}
-        </div>
-      </div>
-
-      <div class="ball-holder-small">
-        ${
-          holder
-            ? `⚽ ${escapeHtml(
-                holder.name ||
-                  "Sem nome"
-              )}`
-            : "⚪ Sem posse"
-        }
-      </div>
-
-    </div>
-  `;
-}
-
-// =========================================
-// HISTÓRICO
+// BOTÕES DO HISTÓRICO
 // =========================================
 
 function setupHistoryButtons() {
+
   const clearButton =
     document.querySelector<HTMLButtonElement>(
       "#clear-history"
     );
 
-  clearButton?.addEventListener(
-    "click",
-    async () => {
-      const confirmed =
-        confirm(
-          "⚠️ Tem certeza que deseja apagar TODO o histórico da partida?"
-        );
+  if (clearButton) {
 
-      if (!confirmed) return;
+    clearButton.addEventListener(
+      "click",
+      async () => {
 
-      await OBR.scene.setMetadata({
-        [`${ID}/history`]: [],
-      });
-    }
-  );
+        const confirmed =
+          confirm(
+            "⚠️ Tem certeza que deseja apagar TODO o histórico da partida?"
+          );
+
+        if (!confirmed) {
+          return;
+        }
+
+        await OBR.scene.setMetadata({
+          [`${ID}/history`]: [],
+        });
+
+        console.log("🧹 Histórico apagado.");
+      }
+    );
+  }
 
   const exportButton =
     document.querySelector<HTMLButtonElement>(
       "#export-history"
     );
 
-  exportButton?.addEventListener(
-    "click",
-    () => {
-      void exportHistory();
-    }
-  );
+  if (exportButton) {
+
+    exportButton.addEventListener(
+      "click",
+      () => {
+        void exportHistory();
+      }
+    );
+  }
 }
 
+// =========================================
+// EXPORTAR HISTÓRICO
+// =========================================
+
 async function exportHistory() {
+
   try {
+
     const metadata =
       await OBR.scene.getMetadata();
 
@@ -651,44 +250,69 @@ async function exportHistory() {
       !Array.isArray(historyData) ||
       historyData.length === 0
     ) {
+
       alert(
         "⚠️ Não existem eventos para exportar."
       );
+
       return;
     }
 
     const history =
       historyData as HistoryEvent[];
 
-    const stats = new Map<
-      string,
-      {
-        name: string;
-        passes: number;
-        interceptions: number;
-      }
-    >();
+    const now =
+      new Date();
+
+    const date =
+      now.toLocaleDateString(
+        "pt-BR"
+      );
+
+    const time =
+      now.toLocaleTimeString(
+        "pt-BR"
+      );
+
+    // =====================================
+    // CONTAGEM DE ESTATÍSTICAS
+    // =====================================
+
+    const stats =
+      new Map<
+        string,
+        {
+          name: string;
+          passes: number;
+          interceptions: number;
+        }
+      >();
 
     for (const event of history) {
-      const fromName =
-        event.fromName ||
-        "Desconhecido";
 
-      const toName =
-        event.toName ||
-        "Desconhecido";
+      // -------------------------------------
+      // PASSE
+      // -------------------------------------
 
       if (event.type === "pass") {
+
+        const name =
+          event.fromName ||
+          "Desconhecido";
+
         const existing =
           stats.get(event.from);
 
         if (existing) {
+
           existing.passes++;
+
         } else {
+
           stats.set(
             event.from,
             {
-              name: fromName,
+              name,
               passes: 1,
               interceptions: 0,
             }
@@ -696,20 +320,32 @@ async function exportHistory() {
         }
       }
 
+      // -------------------------------------
+      // INTERCEPTAÇÃO
+      // -------------------------------------
+
       if (
         event.type === "interception" ||
         event.type === "steal"
       ) {
+
+        const name =
+          event.toName ||
+          "Desconhecido";
+
         const existing =
           stats.get(event.to);
 
         if (existing) {
+
           existing.interceptions++;
+
         } else {
+
           stats.set(
             event.to,
             {
-              name: toName,
+              name,
               passes: 0,
               interceptions: 1,
             }
@@ -717,6 +353,32 @@ async function exportHistory() {
         }
       }
     }
+
+    // =====================================
+    // ORDENAR ESTATÍSTICAS
+    // =====================================
+
+    const sortedStats =
+      Array.from(
+        stats.values()
+      ).sort(
+        (a, b) => {
+
+          const totalA =
+            a.passes +
+            a.interceptions;
+
+          const totalB =
+            b.passes +
+            b.interceptions;
+
+          return totalB - totalA;
+        }
+      );
+
+    // =====================================
+    // MONTAR ARQUIVO
+    // =====================================
 
     let text =
       "BLUE LOCK RPG\n";
@@ -728,17 +390,17 @@ async function exportHistory() {
       "========================================\n\n";
 
     text +=
-      `Data: ${new Date().toLocaleDateString(
-        "pt-BR"
-      )}\n`;
+      `Data da exportação: ${date}\n`;
 
     text +=
-      `Hora: ${new Date().toLocaleTimeString(
-        "pt-BR"
-      )}\n`;
+      `Hora da exportação: ${time}\n`;
 
     text +=
       `Total de eventos: ${history.length}\n\n`;
+
+    // =====================================
+    // ESTATÍSTICAS
+    // =====================================
 
     text +=
       "========================================\n";
@@ -749,16 +411,39 @@ async function exportHistory() {
     text +=
       "========================================\n\n";
 
-    for (const player of stats.values()) {
-      text +=
-        `${player.name}\n`;
+    if (sortedStats.length === 0) {
 
       text +=
-        `  Passes: ${player.passes}\n`;
+        "Nenhuma estatística registrada.\n\n";
 
-      text +=
-        `  Desarmes/Interceptações: ${player.interceptions}\n\n`;
+    } else {
+
+      sortedStats.forEach(
+        (
+          player,
+          index
+        ) => {
+
+          text +=
+            `${String(
+              index + 1
+            ).padStart(
+              2,
+              "0"
+            )}. ${player.name}\n`;
+
+          text +=
+            `    Passes: ${player.passes}\n`;
+
+          text +=
+            `    Desarmes/Interceptações: ${player.interceptions}\n\n`;
+        }
+      );
     }
+
+    // =====================================
+    // HISTÓRICO COMPLETO
+    // =====================================
 
     text +=
       "========================================\n";
@@ -770,7 +455,11 @@ async function exportHistory() {
       "========================================\n\n";
 
     history.forEach(
-      (event, index) => {
+      (
+        event,
+        index
+      ) => {
+
         const fromName =
           event.fromName ||
           "Desconhecido";
@@ -779,21 +468,67 @@ async function exportHistory() {
           event.toName ||
           "Desconhecido";
 
+        // -----------------------------------
+        // PASSE
+        // -----------------------------------
+
         if (event.type === "pass") {
+
           text +=
-            `${String(index + 1).padStart(
+            `${String(
+              index + 1
+            ).padStart(
               3,
               "0"
-            )}. ⚽ ${fromName} → ${toName}\n`;
-        } else {
+            )}. ⚽ ${fromName} passou para ${toName}\n`;
+
+        }
+
+        // -----------------------------------
+        // INTERCEPTAÇÃO
+        // -----------------------------------
+
+        else if (
+          event.type === "interception" ||
+          event.type === "steal"
+        ) {
+
           text +=
-            `${String(index + 1).padStart(
+            `${String(
+              index + 1
+            ).padStart(
               3,
               "0"
             )}. 🛡️ ${toName} interceptou ${fromName}\n`;
+
+        }
+
+        // -----------------------------------
+        // EVENTO DESCONHECIDO
+        // -----------------------------------
+
+        else {
+
+          text +=
+            `${String(
+              index + 1
+            ).padStart(
+              3,
+              "0"
+            )}. ${fromName} → ${toName}\n`;
         }
       }
     );
+
+    text +=
+      "\n========================================\n";
+
+    text +=
+      "Fim do relatório.\n";
+
+    // =====================================
+    // DOWNLOAD
+    // =====================================
 
     const blob =
       new Blob(
@@ -805,27 +540,43 @@ async function exportHistory() {
       );
 
     const url =
-      URL.createObjectURL(blob);
+      URL.createObjectURL(
+        blob
+      );
 
     const link =
-      document.createElement("a");
+      document.createElement(
+        "a"
+      );
 
     link.href = url;
 
     link.download =
-      `blue-lock-partida-${new Date()
-        .toLocaleDateString("pt-BR")
-        .replaceAll("/", "-")}.txt`;
+      `blue-lock-partida-${date.replaceAll(
+        "/",
+        "-"
+      )}.txt`;
 
-    document.body.appendChild(link);
+    document.body.appendChild(
+      link
+    );
 
     link.click();
 
-    document.body.removeChild(link);
+    document.body.removeChild(
+      link
+    );
 
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(
+      url
+    );
+
+    console.log(
+      "📄 Relatório exportado!"
+    );
 
   } catch (error) {
+
     console.error(
       "❌ Erro ao exportar histórico:",
       error
@@ -838,24 +589,170 @@ async function exportHistory() {
 }
 
 // =========================================
+// EXCLUIR EVENTO
+// =========================================
+
+async function deleteEvent(
+  index: number
+) {
+
+  try {
+
+    const metadata =
+      await OBR.scene.getMetadata();
+
+    const historyData =
+      metadata[
+        `${ID}/history`
+      ];
+
+    if (
+      !Array.isArray(historyData)
+    ) {
+      return;
+    }
+
+    const realIndex =
+      historyData.length -
+      1 -
+      index;
+
+    if (
+      realIndex < 0 ||
+      realIndex >=
+        historyData.length
+    ) {
+      return;
+    }
+
+    const event =
+      historyData[
+        realIndex
+      ] as HistoryEvent;
+
+    const fromName =
+      event.fromName ||
+      "Desconhecido";
+
+    const toName =
+      event.toName ||
+      "Desconhecido";
+
+    let description =
+      `${fromName} → ${toName}`;
+
+    if (
+      event.type === "interception" ||
+      event.type === "steal"
+    ) {
+
+      description =
+        `${toName} interceptou ${fromName}`;
+
+    } else if (
+      event.type === "pass"
+    ) {
+
+      description =
+        `${fromName} passou para ${toName}`;
+    }
+
+    const confirmed =
+      confirm(
+        `⚠️ Excluir este evento?\n\n${description}`
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const updatedHistory =
+      historyData.filter(
+        (
+          _event,
+          i
+        ) =>
+          i !==
+          realIndex
+      );
+
+    await OBR.scene.setMetadata({
+      [`${ID}/history`]:
+        updatedHistory,
+    });
+
+    console.log(
+      "🗑 Evento removido."
+    );
+
+  } catch (error) {
+
+    console.error(
+      "❌ Erro ao excluir evento:",
+      error
+    );
+  }
+}
+
+// =========================================
+// BOTÕES DE EXCLUSÃO
+// =========================================
+
+function setupIndividualDeleteButtons() {
+
+  const buttons =
+    document.querySelectorAll<HTMLButtonElement>(
+      ".delete-pass"
+    );
+
+  buttons.forEach(
+    (button) => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const index =
+            Number(
+              button.dataset.index
+            );
+
+          void deleteEvent(
+            index
+          );
+        }
+      );
+    }
+  );
+}
+
+// =========================================
 // RENDERIZAR PAINEL
 // =========================================
 
 async function renderPanel(
   isGM: boolean
 ) {
+
   try {
+
     const metadata =
       await OBR.scene.getMetadata();
 
     const ballId =
-      metadata[`${ID}/ball`];
+      metadata[
+        `${ID}/ball`
+      ];
 
     const holderId =
-      metadata[`${ID}/holder`];
+      metadata[
+        `${ID}/holder`
+      ];
 
     const historyData =
-      metadata[`${ID}/history`];
+      metadata[
+        `${ID}/history`
+      ];
 
     const items =
       await OBR.scene.items.getItems();
@@ -865,47 +762,70 @@ async function renderPanel(
     // =====================================
 
     if (isGM) {
+
       const ballStatus =
         document.querySelector<HTMLDivElement>(
           "#ball-status"
         );
 
-      if (ballStatus) {
-        if (
-          typeof ballId !== "string"
-        ) {
+      if (!ballStatus) {
+        return;
+      }
+
+      if (
+        typeof ballId !==
+        "string"
+      ) {
+
+        ballStatus.innerHTML = `
+          <div class="status danger">
+            🔴 Nenhuma bola definida
+          </div>
+        `;
+
+      } else {
+
+        const ball =
+          items.find(
+            (item) =>
+              item.id ===
+              ballId
+          );
+
+        if (!ball) {
+
           ballStatus.innerHTML = `
             <div class="status danger">
-              🔴 Nenhuma bola definida
+              🔴 Bola não encontrada
             </div>
           `;
+
         } else {
-          const ball =
-            items.find(
-              (item) =>
-                item.id === ballId
-            );
 
-          if (!ball) {
-            ballStatus.innerHTML = `
-              <div class="status danger">
-                🔴 Bola não encontrada
-              </div>
-            `;
-          } else {
-            ballStatus.innerHTML = `
-              <div class="status success">
-                🟢 Bola definida
-              </div>
+          ballStatus.innerHTML = `
+            <div class="status success">
+              🟢 Bola definida
+            </div>
 
-              <div class="info">
+            <div class="info">
+
+              <strong>
                 ${escapeHtml(
                   ball.name ||
-                    "Sem nome"
+                  "Sem nome"
                 )}
-              </div>
-            `;
-          }
+              </strong>
+
+            </div>
+
+            <div class="id">
+
+              ${escapeHtml(
+                ball.id
+              )}
+
+            </div>
+          `;
         }
       }
     }
@@ -919,48 +839,54 @@ async function renderPanel(
         "#ball-holder"
       );
 
-    if (ballHolder) {
-      if (
-        typeof holderId !== "string"
-      ) {
+    if (!ballHolder) {
+      return;
+    }
+
+    if (
+      typeof holderId !==
+      "string"
+    ) {
+
+      ballHolder.innerHTML = `
+        <div class="status warning">
+          🟡 Bola livre
+        </div>
+      `;
+
+    } else {
+
+      const holder =
+        items.find(
+          (item) =>
+            item.id ===
+            holderId
+        );
+
+      if (holder) {
+
         ballHolder.innerHTML = `
-          <div class="status neutral">
-            ⚪ Ninguém está com a bola
+          <div class="holder">
+
+            ⚽
+
+            <strong>
+              ${escapeHtml(
+                holder.name ||
+                "Sem nome"
+              )}
+            </strong>
+
           </div>
         `;
+
       } else {
-        const holder =
-          items.find(
-            (item) =>
-              item.id === holderId
-          );
 
-        if (!holder) {
-          ballHolder.innerHTML = `
-            <div class="status danger">
-              🔴 Jogador não encontrado
-            </div>
-          `;
-        } else {
-          ballHolder.innerHTML = `
-            <div class="holder-card">
-              <span class="holder-ball">⚽</span>
-
-              <div>
-                <div class="holder-label">
-                  POSSE ATUAL
-                </div>
-
-                <strong>
-                  ${escapeHtml(
-                    holder.name ||
-                      "Sem nome"
-                  )}
-                </strong>
-              </div>
-            </div>
-          `;
-        }
+        ballHolder.innerHTML = `
+          <div class="status warning">
+            🟡 Posse desconhecida
+          </div>
+        `;
       }
     }
 
@@ -968,36 +894,52 @@ async function renderPanel(
     // HISTÓRICO
     // =====================================
 
-    const history =
-      Array.isArray(historyData)
-        ? historyData as HistoryEvent[]
-        : [];
-
-    const historyContainer =
+    const passHistory =
       document.querySelector<HTMLDivElement>(
         "#pass-history"
       );
 
-    if (!historyContainer) return;
-
-    if (history.length === 0) {
-      historyContainer.innerHTML = `
-        <div class="history-empty">
-          Nenhum evento ainda.
-        </div>
-      `;
+    if (!passHistory) {
       return;
     }
 
-    const visibleHistory =
-      history
-        .slice(-VISIBLE_HISTORY)
-        .reverse();
+    if (
+      !Array.isArray(historyData) ||
+      historyData.length === 0
+    ) {
 
-    historyContainer.innerHTML =
-      visibleHistory
+      passHistory.innerHTML = `
+        <div class="empty">
+          Nenhum evento ainda.
+        </div>
+      `;
+
+      return;
+    }
+
+    const history =
+      historyData as HistoryEvent[];
+
+    // SOMENTE OS 8 ÚLTIMOS
+
+    const recent =
+      [
+        ...history,
+      ]
+        .reverse()
+        .slice(
+          0,
+          VISIBLE_HISTORY
+        );
+
+    passHistory.innerHTML =
+      recent
         .map(
-          (event) => {
+          (
+            event,
+            index
+          ) => {
+
             const fromName =
               event.fromName ||
               "Desconhecido";
@@ -1006,57 +948,108 @@ async function renderPanel(
               event.toName ||
               "Desconhecido";
 
-            const content =
-              event.type === "pass"
+            let content = "";
+
+            // ---------------------------------
+            // INTERCEPTAÇÃO
+            // ---------------------------------
+
+            if (
+              event.type === "interception" ||
+              event.type === "steal"
+            ) {
+
+              content = `
+                <span class="pass-ball">
+                  🛡️
+                </span>
+
+                <strong>
+                  ${escapeHtml(
+                    toName
+                  )}
+                </strong>
+
+                <span class="arrow">
+                  interceptou
+                </span>
+
+                <strong>
+                  ${escapeHtml(
+                    fromName
+                  )}
+                </strong>
+              `;
+
+            }
+
+            // ---------------------------------
+            // PASSE
+            // ---------------------------------
+
+            else {
+
+              content = `
+                <span class="pass-ball">
+                  ⚽
+                </span>
+
+                <strong>
+                  ${escapeHtml(
+                    fromName
+                  )}
+                </strong>
+
+                <span class="arrow">
+                  passou para
+                </span>
+
+                <strong>
+                  ${escapeHtml(
+                    toName
+                  )}
+                </strong>
+              `;
+            }
+
+            const deleteButton =
+              isGM
                 ? `
-                  <span class="pass-ball">
-                    ⚽
-                  </span>
-
-                  <strong>
-                    ${escapeHtml(fromName)}
-                  </strong>
-
-                  <span class="arrow">
-                    →
-                  </span>
-
-                  <strong>
-                    ${escapeHtml(toName)}
-                  </strong>
+                  <button
+                    class="delete-pass"
+                    data-index="${index}"
+                    title="Excluir este evento"
+                  >
+                    🗑
+                  </button>
                 `
-                : `
-                  <span class="pass-ball">
-                    🛡️
-                  </span>
-
-                  <strong>
-                    ${escapeHtml(toName)}
-                  </strong>
-
-                  <span class="arrow">
-                    interceptou
-                  </span>
-
-                  <strong>
-                    ${escapeHtml(fromName)}
-                  </strong>
-                `;
+                : "";
 
             return `
               <div class="pass">
+
                 <div class="pass-info">
+
                   ${content}
+
                 </div>
+
+                ${deleteButton}
+
               </div>
             `;
           }
         )
         .join("");
 
+    if (isGM) {
+      setupIndividualDeleteButtons();
+    }
+
   } catch (error) {
+
     console.error(
-      "❌ Erro ao atualizar painel:",
+      "Erro ao atualizar painel:",
       error
     );
   }
@@ -1068,13 +1061,29 @@ async function renderPanel(
 
 function escapeHtml(
   value: string
-): string {
+) {
+
   return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 }
 
 // =========================================
@@ -1082,7 +1091,11 @@ function escapeHtml(
 // =========================================
 
 OBR.onReady(() => {
+
   setupContextMenu();
+
   setupPassMode();
+
   void setupPanel();
+
 });

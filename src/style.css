@@ -2,155 +2,61 @@
   box-sizing: border-box;
 }
 
-html,
 body {
   margin: 0;
-  padding: 0;
-  width: 100%;
-  min-height: 100%;
+  padding: 12px;
 
-  background: transparent;
+  font-family: Arial, Helvetica, sans-serif;
 
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  background:
+    radial-gradient(
+      circle at top right,
+      #12345a 0%,
+      #111820 35%,
+      #080b0f 75%
+    );
 
-  color: #f4f7ff;
-}
-
-body {
-  overflow-x: hidden;
+  color: #f4f7fb;
 }
 
 /* =========================================
-   BASE
+   PAINEL
 ========================================= */
-
-button {
-  font-family: inherit;
-}
 
 .panel {
   width: 100%;
-  padding: 12px;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 /* =========================================
-   HEADER
+   CABEÇALHO
 ========================================= */
 
 .header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  margin-bottom: 11px;
-  padding-bottom: 10px;
-
-  border-bottom: 1px solid
-    rgba(80, 150, 255, 0.18);
-}
-
-.header h1 {
-  margin: 0;
-
-  font-size: 18px;
-  font-weight: 900;
-
-  letter-spacing: 0.3px;
-
-  text-shadow:
-    0 0 12px rgba(50, 130, 255, 0.25);
-}
-
-.subtitle {
-  margin-top: 2px;
-
-  font-size: 9px;
-  font-weight: 800;
-
-  letter-spacing: 1.7px;
-
-  color: #5da2ff;
-  opacity: 0.75;
-}
-
-/* =========================================
-   ABAS
-========================================= */
-
-.gm-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-
-  gap: 5px;
-
+  text-align: center;
   margin-bottom: 10px;
 }
 
-.gm-tab {
-  border: 1px solid
-    rgba(80, 150, 255, 0.15);
+h1 {
+  margin: 2px 0 2px;
 
-  border-radius: 7px;
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
 
-  padding: 8px 6px;
+  color: #ffffff;
 
-  background:
-    linear-gradient(
-      180deg,
-      rgba(35, 65, 105, 0.38),
-      rgba(20, 35, 60, 0.32)
-    );
+  text-shadow:
+    0 0 8px rgba(40, 150, 255, 0.65);
+}
 
-  color: rgba(220, 235, 255, 0.58);
-
-  font-size: 11px;
+.subtitle {
+  font-size: 8px;
   font-weight: 800;
+  letter-spacing: 3px;
 
-  cursor: pointer;
-
-  transition:
-    background 0.15s,
-    color 0.15s,
-    border-color 0.15s,
-    box-shadow 0.15s;
-}
-
-.gm-tab:hover {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(45, 85, 140, 0.5),
-      rgba(25, 45, 75, 0.42)
-    );
-
-  color: #fff;
-
-  border-color:
-    rgba(80, 160, 255, 0.28);
-}
-
-.gm-tab.active {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(35, 115, 220, 0.48),
-      rgba(20, 65, 130, 0.42)
-    );
-
-  color: #fff;
-
-  border-color:
-    rgba(70, 155, 255, 0.55);
-
-  box-shadow:
-    0 0 12px
-    rgba(30, 120, 255, 0.16);
+  color: #349cff;
 }
 
 /* =========================================
@@ -158,54 +64,52 @@ button {
 ========================================= */
 
 section {
-  margin-bottom: 10px;
-  padding: 10px;
+  position: relative;
 
-  border-radius: 9px;
+  margin-top: 10px;
+  padding: 11px;
 
   background:
     linear-gradient(
       145deg,
-      rgba(25, 45, 75, 0.52),
-      rgba(10, 20, 38, 0.48)
+      rgba(24, 31, 40, 0.98),
+      rgba(13, 18, 24, 0.98)
     );
 
-  border: 1px solid
-    rgba(80, 145, 230, 0.13);
+  border: 1px solid #263746;
+  border-radius: 9px;
 
   box-shadow:
-    inset 0 1px 0
-    rgba(255, 255, 255, 0.025);
+    0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
-section h2 {
-  margin: 0 0 8px;
+section::before {
+  content: "";
 
-  font-size: 11px;
-  font-weight: 900;
+  position: absolute;
+
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+
+  width: 3px;
+
+  background: #168cff;
+
+  border-radius:
+    0 3px 3px 0;
+}
+
+h2 {
+  margin: 0 0 9px 4px;
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+
+  color: #7191ad;
 
   text-transform: uppercase;
-  letter-spacing: 0.7px;
-
-  color: #dbeaff;
-  opacity: 0.82;
-}
-
-.section-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.section-top h2 {
-  margin-bottom: 2px;
-}
-
-.section-description {
-  font-size: 9px;
-
-  color: #91b5df;
-  opacity: 0.65;
 }
 
 /* =========================================
@@ -213,298 +117,108 @@ section h2 {
 ========================================= */
 
 .status {
-  padding: 8px;
+  padding: 8px 9px;
 
-  border-radius: 7px;
+  border-radius: 6px;
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
 }
 
-.status.success {
+.success {
   background:
-    linear-gradient(
-      90deg,
-      rgba(40, 190, 115, 0.16),
-      rgba(40, 190, 115, 0.06)
-    );
+    rgba(30, 170, 95, 0.12);
 
-  border: 1px solid
-    rgba(60, 210, 130, 0.12);
+  border:
+    1px solid rgba(70, 220, 135, 0.25);
+
+  color: #62e89a;
 }
 
-.status.danger {
+.danger {
   background:
-    linear-gradient(
-      90deg,
-      rgba(235, 55, 70, 0.16),
-      rgba(235, 55, 70, 0.06)
-    );
+    rgba(220, 55, 55, 0.12);
 
-  border: 1px solid
-    rgba(255, 70, 80, 0.12);
+  border:
+    1px solid rgba(255, 80, 80, 0.25);
+
+  color: #ff7070;
 }
 
-.status.neutral {
+.warning {
   background:
-    rgba(70, 110, 160, 0.12);
+    rgba(220, 170, 45, 0.12);
 
-  border: 1px solid
-    rgba(100, 150, 210, 0.1);
+  border:
+    1px solid rgba(255, 205, 80, 0.25);
+
+  color: #f3d56a;
 }
+
+/* =========================================
+   INFO DA BOLA
+========================================= */
 
 .info {
-  margin-top: 5px;
+  margin-top: 8px;
+  padding-left: 3px;
 
-  font-size: 11px;
+  font-size: 13px;
 
-  color: #b7d1ef;
-  opacity: 0.8;
+  color: #e7edf4;
 }
 
-.small-text {
-  margin-top: 3px;
+.id {
+  margin-top: 4px;
 
-  font-size: 9px;
+  font-family: monospace;
+  font-size: 8px;
 
-  color: #8baaca;
-  opacity: 0.7;
+  color: #506274;
+
+  word-break: break-all;
 }
 
 /* =========================================
    POSSE
 ========================================= */
 
-.holder-card {
+.holder {
   display: flex;
+
   align-items: center;
+  gap: 8px;
 
-  gap: 9px;
-
-  padding: 9px;
-
-  border-radius: 8px;
-
-  background:
-    linear-gradient(
-      135deg,
-      rgba(25, 100, 190, 0.22),
-      rgba(20, 40, 75, 0.25)
-    );
-
-  border: 1px solid
-    rgba(60, 145, 240, 0.16);
-
-  box-shadow:
-    inset 0 0 15px
-    rgba(30, 110, 210, 0.05);
-}
-
-.holder-ball {
-  font-size: 20px;
-
-  filter:
-    drop-shadow(
-      0 0 5px
-      rgba(255, 255, 255, 0.25)
-    );
-}
-
-.holder-label {
-  margin-bottom: 2px;
-
-  font-size: 8px;
-  font-weight: 900;
-
-  letter-spacing: 1px;
-
-  color: #6caeff;
-  opacity: 0.8;
-}
-
-.holder-card strong {
-  font-size: 12px;
-
-  color: #fff;
-}
-
-/* =========================================
-   GERENCIAMENTO DE DONOS
-========================================= */
-
-.owner-list {
-  display: flex;
-  flex-direction: column;
-
-  gap: 7px;
-}
-
-.owner-player {
-  overflow: hidden;
-
-  border-radius: 8px;
-
-  border: 1px solid
-    rgba(70, 130, 210, 0.13);
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(25, 45, 75, 0.4),
-      rgba(10, 20, 38, 0.38)
-    );
-}
-
-.owner-player-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  padding: 8px 9px;
+  padding: 10px;
 
   background:
     linear-gradient(
       90deg,
-      rgba(35, 85, 145, 0.25),
-      rgba(25, 50, 85, 0.18)
+      rgba(22, 140, 255, 0.18),
+      rgba(22, 140, 255, 0.03)
     );
 
-  border-bottom: 1px solid
-    rgba(70, 130, 210, 0.08);
-}
+  border:
+    1px solid rgba(45, 155, 255, 0.3);
 
-.owner-player-name {
-  font-size: 11px;
-  font-weight: 900;
+  border-radius: 7px;
 
-  color: #e7f1ff;
-}
+  font-size: 14px;
 
-.owner-token-count {
-  padding: 2px 6px;
-
-  border-radius: 10px;
-
-  font-size: 8px;
-  font-weight: 900;
-
-  background:
-    rgba(65, 135, 220, 0.18);
-
-  color: #8fc2ff;
-
-  border: 1px solid
-    rgba(80, 150, 240, 0.12);
-}
-
-.owner-token {
-  display: flex;
-  align-items: center;
-
-  padding: 7px 9px;
-
-  border-top: 1px solid
-    rgba(80, 130, 190, 0.06);
-}
-
-.owner-token-info {
-  min-width: 0;
-}
-
-.owner-token-name {
-  overflow: hidden;
-
-  font-size: 11px;
-  font-weight: 800;
-
-  color: #dcecff;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.owner-token-status {
-  margin-top: 2px;
-
-  font-size: 8px;
-
-  color: #88a9cc;
-  opacity: 0.7;
-}
-
-.owner-empty {
-  padding: 8px 9px;
-
-  font-size: 9px;
-
-  color: #7894b5;
-  opacity: 0.65;
-}
-
-.owner-player.unassigned {
-  border-color:
-    rgba(255, 170, 50, 0.15);
-}
-
-.owner-player.unassigned
-.owner-player-header {
-  background:
-    linear-gradient(
-      90deg,
-      rgba(150, 95, 20, 0.18),
-      rgba(80, 55, 20, 0.12)
-    );
-}
-
-.owner-unassigned {
-  background:
-    rgba(120, 75, 15, 0.07);
+  color: #ffffff;
 }
 
 /* =========================================
-   BOLA NO GERENCIAMENTO
-========================================= */
-
-.gm-ball-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 10px;
-}
-
-.gm-ball-row strong {
-  font-size: 11px;
-}
-
-.ball-holder-small {
-  max-width: 48%;
-
-  padding: 5px 7px;
-
-  border-radius: 6px;
-
-  background:
-    rgba(40, 110, 190, 0.13);
-
-  border: 1px solid
-    rgba(70, 145, 230, 0.1);
-
-  color: #a9cefa;
-
-  font-size: 9px;
-
-  text-align: right;
-}
-
-/* =========================================
-   HISTÓRICO
+   CABEÇALHO DO HISTÓRICO
 ========================================= */
 
 .history-header {
   display: flex;
+
   align-items: center;
   justify-content: space-between;
+
+  margin-bottom: 7px;
 }
 
 .history-header h2 {
@@ -513,58 +227,97 @@ section h2 {
 
 .history-actions {
   display: flex;
-  gap: 4px;
+
+  align-items: center;
+
+  gap: 5px;
 }
 
-.icon-button {
-  width: 25px;
-  height: 25px;
+/* =========================================
+   BOTÕES DO HISTÓRICO
+========================================= */
+
+.export-button,
+.clear-button {
+  width: 26px;
+  height: 26px;
 
   padding: 0;
 
-  border: 1px solid
-    rgba(75, 145, 235, 0.16);
-
   border-radius: 6px;
-
-  background:
-    rgba(40, 90, 150, 0.18);
-
-  color: #d9ebff;
 
   cursor: pointer;
 
-  transition:
-    background 0.15s,
-    border-color 0.15s;
+  font-size: 12px;
+
+  transition: 0.15s ease;
 }
 
-.icon-button:hover {
-  background:
-    rgba(50, 125, 215, 0.28);
+/* ---------- EXPORTAR ---------- */
 
-  border-color:
-    rgba(80, 160, 255, 0.28);
+.export-button {
+  border: 1px solid #263f55;
+
+  background: #111c27;
+
+  color: #5eaeeb;
 }
 
-.danger-button:hover {
-  background:
-    rgba(220, 50, 60, 0.18);
+.export-button:hover {
+  background: #17324a;
 
-  border-color:
-    rgba(255, 70, 80, 0.2);
+  border-color: #349cff;
+
+  color: #8acaff;
+
+  transform: scale(1.05);
 }
+
+/* ---------- LIMPAR ---------- */
+
+.clear-button {
+  border: 1px solid #3c2b2b;
+
+  background: #1c1719;
+
+  color: #d47777;
+}
+
+.clear-button:hover {
+  background: #382024;
+
+  border-color: #704047;
+
+  color: #ff8585;
+
+  transform: scale(1.05);
+}
+
+.export-button:active,
+.clear-button:active {
+  transform: scale(0.95);
+}
+
+/* =========================================
+   PASSES
+========================================= */
 
 .pass {
   display: flex;
+
   align-items: center;
+  justify-content: space-between;
 
-  min-height: 30px;
+  min-height: 31px;
 
-  padding: 6px 2px;
+  padding: 5px 3px;
 
-  border-bottom: 1px solid
-    rgba(80, 130, 190, 0.07);
+  border-bottom:
+    1px solid #202b35;
+
+  font-size: 11px;
+
+  color: #cbd5df;
 }
 
 .pass:last-child {
@@ -573,111 +326,133 @@ section h2 {
 
 .pass-info {
   display: flex;
+
   align-items: center;
 
   gap: 5px;
 
   min-width: 0;
-
-  font-size: 10px;
 }
 
 .pass-info strong {
+  color: #ffffff;
+
   overflow: hidden;
 
-  max-width: 95px;
-
-  color: #dcecff;
-
   text-overflow: ellipsis;
+
   white-space: nowrap;
 }
 
 .pass-ball {
-  flex-shrink: 0;
-
-  font-size: 13px;
-
-  filter:
-    drop-shadow(
-      0 0 4px
-      rgba(70, 150, 255, 0.25)
-    );
+  color: #349cff;
 }
 
 .arrow {
-  flex-shrink: 0;
+  color: #526e87;
 
-  font-size: 9px;
-
-  color: #7ea6d2;
-  opacity: 0.7;
-}
-
-.history-empty {
-  padding: 10px 4px;
-
-  font-size: 10px;
-
-  color: #7695b8;
-
-  text-align: center;
-
-  opacity: 0.65;
+  font-weight: bold;
 }
 
 /* =========================================
-   AJUDA DO JOGADOR
+   BOTÃO EXCLUIR PASSE
+========================================= */
+
+.delete-pass {
+  flex-shrink: 0;
+
+  width: 24px;
+  height: 24px;
+
+  margin-left: 6px;
+  padding: 0;
+
+  border: 1px solid transparent;
+  border-radius: 5px;
+
+  background: transparent;
+
+  color: #687783;
+
+  cursor: pointer;
+
+  font-size: 11px;
+
+  transition: 0.15s ease;
+}
+
+.delete-pass:hover {
+  background:
+    rgba(220, 55, 55, 0.15);
+
+  border-color:
+    rgba(255, 80, 80, 0.25);
+
+  color: #ff7070;
+}
+
+.delete-pass:active {
+  transform: scale(0.9);
+}
+
+/* =========================================
+   HISTÓRICO VAZIO
+========================================= */
+
+.empty {
+  padding: 7px 2px;
+
+  font-size: 11px;
+
+  color: #526272;
+
+  text-align: center;
+}
+
+/* =========================================
+   AJUDA DO PLAYER
 ========================================= */
 
 .player-help {
-  padding: 10px;
+  margin-top: 10px;
 
-  border-radius: 8px;
+  padding: 9px 10px;
 
   background:
     linear-gradient(
-      145deg,
-      rgba(25, 70, 125, 0.2),
-      rgba(15, 30, 55, 0.2)
+      135deg,
+      rgba(22, 140, 255, 0.12),
+      rgba(22, 140, 255, 0.03)
     );
 
-  border: 1px solid
-    rgba(65, 135, 225, 0.12);
+  border:
+    1px solid rgba(45, 155, 255, 0.2);
+
+  border-radius: 7px;
+
+  color: #8298ac;
 
   font-size: 10px;
-  line-height: 1.4;
 
-  color: #9db9d8;
+  line-height: 1.45;
 
-  opacity: 0.9;
-}
-
-.player-help strong {
-  color: #6eb0ff;
-  opacity: 1;
+  text-align: center;
 }
 
 /* =========================================
-   SCROLL
+   SCROLLBAR
 ========================================= */
 
-::-webkit-scrollbar {
-  width: 5px;
+.panel::-webkit-scrollbar {
+  width: 4px;
 }
 
-::-webkit-scrollbar-track {
+.panel::-webkit-scrollbar-track {
   background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
+.panel::-webkit-scrollbar-thumb {
+  background: #263f55;
+
   border-radius: 10px;
-
-  background:
-    rgba(70, 135, 215, 0.25);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background:
-    rgba(80, 155, 240, 0.4);
 }
