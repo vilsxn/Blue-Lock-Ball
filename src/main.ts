@@ -21,6 +21,16 @@ shotUiStyle.textContent = `
   .shot-result:hover { transform: translateY(-1px); filter: brightness(1.12); }
   .shot-result-shot { background: #3b82f6; }
   .shot-result-goal { background: #16a34a; }
+  .assist-settings { position: relative; display: inline-flex; align-items: center; margin-left: 6px; }
+  .assist-settings-toggle { width: 30px; height: 30px; border: 1px solid rgba(255,255,255,.16); border-radius: 8px; background: rgba(20,25,35,.92); color: #fff; cursor: pointer; font-size: 16px; display: grid; place-items: center; transition: .15s ease; }
+  .assist-settings-toggle:hover { transform: translateY(-1px); filter: brightness(1.15); }
+  .assist-settings-menu { position: absolute; right: 0; bottom: 36px; z-index: 20; display: flex; gap: 6px; padding: 7px; border-radius: 10px; background: rgba(18,22,30,.98); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 8px 24px rgba(0,0,0,.35); white-space: nowrap; }
+  .assist-settings-menu[hidden] { display: none; }
+  .assist-result { border: 0; border-radius: 7px; padding: 7px 10px; color: #fff; font-weight: 700; cursor: pointer; font-size: 11px; transition: .15s ease; }
+  .assist-result:hover { transform: translateY(-1px); filter: brightness(1.12); }
+  .assist-result-on { background: #f59e0b; }
+  .assist-result-off { background: #475569; }
+  .assist-badge { display: inline-block; margin-left: 5px; padding: 2px 6px; border-radius: 6px; background: rgba(245,158,11,.18); color: #fbbf24; font-size: 10px; font-weight: 800; }
 `;
 document.head.appendChild(shotUiStyle);
 
@@ -31,6 +41,7 @@ document.head.appendChild(shotUiStyle);
 type HistoryEvent = {
   type: "pass" | "interception" | "steal" | "shot";
   result?: "pending" | "shot" | "goal";
+  assist?: boolean;
   from: string;
   to: string;
   fromName?: string;
@@ -302,6 +313,7 @@ async function exportHistory() {
           interceptions: number;
           shots: number;
           goals: number;
+          assists: number;
         }
       >();
 
@@ -323,6 +335,7 @@ async function exportHistory() {
         if (existing) {
 
           existing.passes++;
+          if (event.assist) existing.assists++;
 
         } else {
 
@@ -334,6 +347,7 @@ async function exportHistory() {
               interceptions: 0,
               shots: 0,
               goals: 0,
+              assists: event.assist ? 1 : 0,
             }
           );
         }
@@ -369,6 +383,7 @@ async function exportHistory() {
               interceptions: 1,
               shots: 0,
               goals: 0,
+              assists: 0,
             }
           );
         }
@@ -395,6 +410,7 @@ async function exportHistory() {
           interceptions: 0,
           shots: 1,
           goals: event.result === "goal" ? 1 : 0,
+          assists: 0,
         });
       }
     }
@@ -483,6 +499,9 @@ async function exportHistory() {
             `    Passes: ${player.passes}\n`;
 
           text +=
+            `    Assistências: ${player.assists}\n`;
+
+          text +=
             `    Desarmes/Interceptações: ${player.interceptions}\n`;
 
           text +=
@@ -536,7 +555,7 @@ async function exportHistory() {
             ).padStart(
               3,
               "0"
-            )}. ⚽ ${fromName} passou para ${toName}\n`;
+            )}. ⚽ ${fromName} deu assistência para ${toName}${event.assist ? " — ASSISTÊNCIA" : ""}\n`;
 
         }
 
@@ -731,7 +750,7 @@ async function deleteEvent(
     ) {
 
       description =
-        `${fromName} passou para ${toName}`;
+        `${fromName} deu assistência para ${toName}`;
 
     } else if (
       event.type === "shot"
@@ -774,6 +793,87 @@ async function deleteEvent(
       error
     );
   }
+}
+
+// =========================================
+// ALTERAR ASSISTÊNCIA DO PASSE
+// =========================================
+
+async function setPassAssist(
+  index: number,
+  assist: boolean
+) {
+  try {
+    const metadata = await OBR.scene.getMetadata();
+    const historyData = metadata[`${ID}/history`];
+
+    if (!Array.isArray(historyData)) return;
+    if (index < 0 || index >= historyData.length) return;
+
+    const event = historyData[index] as HistoryEvent;
+    if (event.type !== "pass") return;
+
+    const updatedHistory = historyData.map((entry, i) =>
+      i === index
+        ? { ...entry, assist }
+        : entry
+    );
+
+    await OBR.scene.setMetadata({
+      [`${ID}/history`]: updatedHistory,
+    });
+  } catch (error) {
+    console.error("❌ Erro ao atualizar assistência do passe:", error);
+  }
+}
+
+// =========================================
+// BOTÕES DE ASSISTÊNCIA
+// =========================================
+
+function setupPassAssistButtons() {
+  const buttons =
+    document.querySelectorAll<HTMLButtonElement>(
+      ".assist-result"
+    );
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const index = Number(button.dataset.index);
+      const assist = button.dataset.assist === "true";
+      void setPassAssist(index, assist);
+    });
+  });
+}
+
+// =========================================
+// MENU DE ASSISTÊNCIA
+// =========================================
+
+function setupPassAssistSettings() {
+  const toggles =
+    document.querySelectorAll<HTMLButtonElement>(
+      ".assist-settings-toggle"
+    );
+
+  toggles.forEach((toggle) => {
+    toggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+
+      const id = toggle.dataset.assistMenu;
+      if (!id) return;
+
+      document
+        .querySelectorAll<HTMLElement>(".assist-settings-menu")
+        .forEach((menu) => {
+          if (menu.dataset.assistMenuPanel === id) {
+            menu.hidden = !menu.hidden;
+          } else {
+            menu.hidden = true;
+          }
+        });
+    });
+  });
 }
 
 // =========================================
@@ -1199,7 +1299,7 @@ async function renderPanel(
                 </strong>
 
                 <span class="arrow">
-                  passou para
+                  deu assistência para
                 </span>
 
                 <strong>
@@ -1207,11 +1307,50 @@ async function renderPanel(
                     toName
                   )}
                 </strong>
+
+                ${event.assist ? '<span class="assist-badge">ASSISTÊNCIA</span>' : ""}
               `;
             }
 
             const realIndex =
               history.length - 1 - index;
+
+            const passAssistButtons =
+              isGM && event.type === "pass"
+                ? `
+                  <div class="assist-settings">
+                    <button
+                      class="assist-settings-toggle"
+                      data-assist-menu="${realIndex}"
+                      title="Alterar assistência"
+                      aria-label="Alterar assistência"
+                    >
+                      ⚙
+                    </button>
+
+                    <div
+                      class="assist-settings-menu"
+                      data-assist-menu-panel="${realIndex}"
+                      hidden
+                    >
+                      <button
+                        class="assist-result assist-result-on"
+                        data-index="${realIndex}"
+                        data-assist="true"
+                      >
+                        ASSISTÊNCIA
+                      </button>
+                      <button
+                        class="assist-result assist-result-off"
+                        data-index="${realIndex}"
+                        data-assist="false"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  </div>
+                `
+                : "";
 
             const shotButtons =
               isGM && event.type === "shot"
@@ -1272,6 +1411,7 @@ async function renderPanel(
 
                 </div>
 
+                ${passAssistButtons}
                 ${shotButtons}
 
                 ${deleteButton}
@@ -1286,6 +1426,8 @@ async function renderPanel(
       setupIndividualDeleteButtons();
       setupShotResultButtons();
       setupShotSettings();
+      setupPassAssistButtons();
+      setupPassAssistSettings();
     }
 
   } catch (error) {
