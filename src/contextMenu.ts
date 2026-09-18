@@ -1,5 +1,5 @@
 import OBR from "@owlbear-rodeo/sdk";
-import { startPass, startInterception, startShot } from "./passMode";
+import { startPass, startInterception, recordShot } from "./passMode";
 
 const ID = "com.bluelock.ball";
 
@@ -32,7 +32,7 @@ export function setupContextMenu() {
         [`${ID}/holder`]: undefined,
       });
 
-      console.log("⚽ Bola definida:", selectedItem.id);
+      
     },
   });
 
@@ -60,7 +60,7 @@ export function setupContextMenu() {
       const ballId = metadata[`${ID}/ball`];
 
       if (typeof ballId !== "string") {
-        console.log("❌ Nenhuma bola foi definida.");
+        
         return;
       }
 
@@ -68,7 +68,7 @@ export function setupContextMenu() {
       const ball = items.find((item) => item.id === ballId);
 
       if (!ball) {
-        console.log("❌ Bola não encontrada.");
+        
         return;
       }
 
@@ -82,7 +82,7 @@ export function setupContextMenu() {
         [`${ID}/holder`]: player.id,
       });
 
-      console.log("⚽ Posse dada para:", player.name);
+      
     },
   });
 
@@ -110,7 +110,7 @@ export function setupContextMenu() {
       const ballId = metadata[`${ID}/ball`];
 
       if (typeof ballId !== "string") {
-        console.log("❌ Nenhuma bola foi definida.");
+        
         return;
       }
 
@@ -118,7 +118,7 @@ export function setupContextMenu() {
       const ball = items.find((item) => item.id === ballId);
 
       if (!ball) {
-        console.log("❌ Bola não encontrada.");
+        
         return;
       }
 
@@ -132,7 +132,7 @@ export function setupContextMenu() {
         [`${ID}/holder`]: undefined,
       });
 
-      console.log("🔓 Bola desanexada!");
+      
     },
   });
 
@@ -168,18 +168,18 @@ export function setupContextMenu() {
       const holderId = metadata[`${ID}/holder`];
 
       if (typeof ballId !== "string") {
-        console.log("❌ Não existe uma bola definida.");
+        
         return;
       }
 
       if (holderId !== player.id) {
-        console.log("❌ Este jogador não está com a bola.");
-        console.log("👤 Selecionado:", player.id);
-        console.log("⚽ Dono da bola:", holderId);
+        
+        
+        
         return;
       }
 
-      console.log("⚽ Passe iniciado por:", player.name);
+      
 
       startPass(player.id);
     },
@@ -216,17 +216,16 @@ export function setupContextMenu() {
       const holderId = metadata[`${ID}/holder`];
 
       if (typeof ballId !== "string") {
-        console.log("❌ Não existe uma bola definida.");
+        
         return;
       }
 
       if (holderId !== shooter.id) {
-        console.log("❌ Este jogador não está com a bola.");
+        
         return;
       }
 
-      console.log("🎯 Chute iniciado por:", shooter.name);
-      await startShot(shooter.id);
+      await recordShot(shooter.id);
     },
   });
 
@@ -262,23 +261,21 @@ export function setupContextMenu() {
       const holderId = metadata[`${ID}/holder`];
 
       if (typeof ballId !== "string") {
-        console.log("❌ Não existe uma bola definida.");
+        
         return;
       }
 
       if (typeof holderId !== "string") {
-        console.log("❌ Ninguém está com a posse da bola.");
+        
         return;
       }
 
       if (holderId === interceptor.id) {
-        console.log("❌ Este jogador já está com a bola.");
+        
         return;
       }
 
-      console.log(
-        `🛡️ ${interceptor.name} vai interceptar a bola de quem estiver com a posse.`
-      );
+      
 
       startInterception(interceptor.id);
     },

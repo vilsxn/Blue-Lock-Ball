@@ -54,18 +54,18 @@ export function setupPassMode() {
     const receiverId = selection[0];
     const currentPasserId = passerId;
 
-    console.log("🎯 Receptor selecionado:", receiverId);
+    
 
     waitingForReceiver = false;
     passerId = null;
 
     if (!currentPasserId) {
-      console.log("❌ Não foi possível identificar o passador.");
+      
       return;
     }
 
     if (currentPasserId === receiverId) {
-      console.log("❌ O receptor não pode ser o próprio passador.");
+      
       return;
     }
 
@@ -81,8 +81,8 @@ export function startPass(passerIdFromContext: string) {
   waitingForReceiver = true;
   passerId = passerIdFromContext;
 
-  console.log("⚽ Passe iniciado por:", passerIdFromContext);
-  console.log("⚽ Escolha o jogador que vai receber o passe.");
+  
+  
 }
 
 
@@ -90,18 +90,18 @@ export function startPass(passerIdFromContext: string) {
 // INICIAR CHUTE
 // =========================================
 
-export async function startShot(shooterIdFromContext: string) {
+export async function recordShot(shooterIdFromContext: string) {
   const metadata = await OBR.scene.getMetadata();
   const ballId = metadata[`${ID}/ball`];
   const holderId = metadata[`${ID}/holder`];
 
   if (typeof ballId !== "string") {
-    console.log("❌ Não existe uma bola definida.");
+    
     return;
   }
 
   if (holderId !== shooterIdFromContext) {
-    console.log("❌ Este jogador não está com a bola.");
+    
     return;
   }
 
@@ -109,7 +109,7 @@ export async function startShot(shooterIdFromContext: string) {
   const shooter = items.find((item) => item.id === shooterIdFromContext);
 
   if (!shooter) {
-    console.log("❌ Jogador do chute não encontrado.");
+    
     return;
   }
 
@@ -123,7 +123,7 @@ export async function startShot(shooterIdFromContext: string) {
     time: Date.now(),
   });
 
-  console.log("🎯 Chute registrado no histórico:", shooter.name);
+  
 }
 
 // =========================================
@@ -131,7 +131,7 @@ export async function startShot(shooterIdFromContext: string) {
 // =========================================
 
 export function startInterception(interceptorId: string) {
-  console.log("🛡️ Interceptação iniciada por:", interceptorId);
+  
 
   // Não espera seleção.
   // O alvo é automaticamente quem estiver com a posse.
@@ -153,12 +153,12 @@ async function performPass(
     const holderId = metadata[`${ID}/holder`];
 
     if (typeof ballId !== "string") {
-      console.log("❌ Bola não encontrada.");
+      
       return;
     }
 
     if (holderId !== passerId) {
-      console.log("❌ O jogador não está mais com a bola.");
+      
       return;
     }
 
@@ -169,7 +169,7 @@ async function performPass(
     const receiver = items.find((item) => item.id === receiverId);
 
     if (!ball || !passer || !receiver) {
-      console.log("❌ Não foi possível encontrar os personagens.");
+      
       return;
     }
 
@@ -181,8 +181,8 @@ async function performPass(
     const targetX = receiver.position.x + gridSize * 0.36;
     const targetY = receiver.position.y + gridSize * 0.36;
 
-    console.log("📍 Posição inicial:", startX, startY);
-    console.log("🎯 Destino:", targetX, targetY);
+    
+    
 
     // Solta a bola mantendo exatamente a posição atual.
     await OBR.scene.items.updateItems([ball.id], (items) => {
@@ -193,13 +193,13 @@ async function performPass(
       }
     });
 
-    console.log("🏃 Bola solta!");
+    
 
     const updatedItems = await OBR.scene.items.getItems([ball.id]);
     const updatedBall = updatedItems[0];
 
     if (!updatedBall) {
-      console.log("❌ Bola desapareceu durante o passe.");
+      
       return;
     }
 
@@ -208,7 +208,7 @@ async function performPass(
 
     const [update, stop] = interaction;
 
-    console.log("🎬 Interação da bola iniciada!");
+    
 
     const duration = 550;
     const intervalTime = 25;
@@ -300,9 +300,7 @@ async function finishPass(
     time: Date.now(),
   });
 
-  console.log(
-    `⚽ Passe concluído: ${passer.name} → ${receiver.name}`
-  );
+  
 }
 
 // =========================================
@@ -320,17 +318,17 @@ async function performInterception(interceptorId: string) {
     const holderId = metadata[`${ID}/holder`];
 
     if (typeof ballId !== "string") {
-      console.log("❌ Bola não encontrada.");
+      
       return;
     }
 
     if (typeof holderId !== "string") {
-      console.log("❌ Ninguém está com a bola.");
+      
       return;
     }
 
     if (holderId === interceptorId) {
-      console.log("❌ O jogador já está com a bola.");
+      
       return;
     }
 
@@ -343,15 +341,11 @@ async function performInterception(interceptorId: string) {
     );
 
     if (!ball || !holder || !interceptor) {
-      console.log(
-        "❌ Não foi possível encontrar a bola ou um dos jogadores."
-      );
+      
       return;
     }
 
-    console.log(
-      `🛡️ ${interceptor.name} interceptou ${holder.name}`
-    );
+    
 
     const startX = ball.position.x;
     const startY = ball.position.y;
@@ -373,7 +367,7 @@ async function performInterception(interceptorId: string) {
       }
     });
 
-    console.log("🏃 Bola solta para a interceptação!");
+    
 
     const updatedItems =
       await OBR.scene.items.getItems([ball.id]);
@@ -381,7 +375,7 @@ async function performInterception(interceptorId: string) {
     const updatedBall = updatedItems[0];
 
     if (!updatedBall) {
-      console.log("❌ Bola desapareceu.");
+      
       return;
     }
 
@@ -390,7 +384,7 @@ async function performInterception(interceptorId: string) {
 
     const [update, stop] = interaction;
 
-    console.log("🎬 Interação da interceptação iniciada!");
+    
 
     const duration = 450;
     const intervalTime = 25;
@@ -490,9 +484,7 @@ async function finishInterception(
     time: Date.now(),
   });
 
-  console.log(
-    `🛡️ Interceptação concluída: ${interceptor.name} tomou a bola de ${holder.name}`
-  );
+  
 }
 
 // =========================================
@@ -516,5 +508,5 @@ async function addHistoryEvent(event: HistoryEvent) {
     [`${ID}/history`]: updatedHistory,
   });
 
-  console.log("📜 Evento registrado:", event);
+  
 }

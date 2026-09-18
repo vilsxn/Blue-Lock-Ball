@@ -10,6 +10,20 @@ const VISIBLE_HISTORY = 8;
 const app =
   document.querySelector<HTMLDivElement>("#app")!;
 
+const shotUiStyle = document.createElement("style");
+shotUiStyle.textContent = `
+  .shot-settings { position: relative; display: inline-flex; align-items: center; margin-left: 6px; }
+  .shot-settings-toggle { width: 30px; height: 30px; border: 1px solid rgba(255,255,255,.16); border-radius: 8px; background: rgba(20,25,35,.92); color: #fff; cursor: pointer; font-size: 16px; display: grid; place-items: center; transition: .15s ease; }
+  .shot-settings-toggle:hover { transform: translateY(-1px); filter: brightness(1.15); }
+  .shot-settings-menu { position: absolute; right: 0; bottom: 36px; z-index: 20; display: flex; gap: 6px; padding: 7px; border-radius: 10px; background: rgba(18,22,30,.98); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 8px 24px rgba(0,0,0,.35); white-space: nowrap; }
+  .shot-settings-menu[hidden] { display: none; }
+  .shot-result { border: 0; border-radius: 7px; padding: 7px 10px; color: #fff; font-weight: 700; cursor: pointer; font-size: 11px; transition: .15s ease; }
+  .shot-result:hover { transform: translateY(-1px); filter: brightness(1.12); }
+  .shot-result-shot { background: #3b82f6; }
+  .shot-result-goal { background: #16a34a; }
+`;
+document.head.appendChild(shotUiStyle);
+
 // =========================================
 // TIPOS
 // =========================================
@@ -212,7 +226,7 @@ function setupHistoryButtons() {
           [`${ID}/history`]: [],
         });
 
-        console.log("🧹 Histórico apagado.");
+        
       }
     );
   }
@@ -286,6 +300,8 @@ async function exportHistory() {
           name: string;
           passes: number;
           interceptions: number;
+          shots: number;
+          goals: number;
         }
       >();
 
@@ -316,6 +332,8 @@ async function exportHistory() {
               name,
               passes: 1,
               interceptions: 0,
+              shots: 0,
+              goals: 0,
             }
           );
         }
@@ -349,9 +367,35 @@ async function exportHistory() {
               name,
               passes: 0,
               interceptions: 1,
+              shots: 0,
+              goals: 0,
             }
           );
         }
+      }
+    }
+
+    // -------------------------------------
+    // CHUTES E GOLS
+    // -------------------------------------
+
+    for (const event of history) {
+      if (event.type !== "shot") continue;
+
+      const name = event.fromName || "Desconhecido";
+      const existing = stats.get(event.from);
+
+      if (existing) {
+        existing.shots++;
+        if (event.result === "goal") existing.goals++;
+      } else {
+        stats.set(event.from, {
+          name,
+          passes: 0,
+          interceptions: 0,
+          shots: 1,
+          goals: event.result === "goal" ? 1 : 0,
+        });
       }
     }
 
@@ -367,11 +411,13 @@ async function exportHistory() {
 
           const totalA =
             a.passes +
-            a.interceptions;
+            a.interceptions +
+            a.shots;
 
           const totalB =
             b.passes +
-            b.interceptions;
+            b.interceptions +
+            b.shots;
 
           return totalB - totalA;
         }
@@ -437,7 +483,16 @@ async function exportHistory() {
             `    Passes: ${player.passes}\n`;
 
           text +=
-            `    Desarmes/Interceptações: ${player.interceptions}\n\n`;
+            `    Desarmes/Interceptações: ${player.interceptions}\n`;
+
+          text +=
+            `    Chutes a gol: ${player.shots}\n`;
+
+          text +=
+            `    Gols: ${player.goals}\n`;
+
+          text +=
+            `    Conversão: ${player.shots > 0 ? ((player.goals / player.shots) * 100).toFixed(1) : "0.0"}%\n\n`;
         }
       );
     }
@@ -512,8 +567,10 @@ async function exportHistory() {
 
           const result =
             event.result === "goal"
-              ? "chute a gol + GOL"
-              : "chute a gol";
+              ? "GOOOOOL"
+              : event.result === "shot"
+                ? "chute a gol"
+                : "Realizou um chute e......";
 
           text +=
             `${String(
@@ -593,9 +650,7 @@ async function exportHistory() {
       url
     );
 
-    console.log(
-      "📄 Relatório exportado!"
-    );
+    
 
   } catch (error) {
 
@@ -710,9 +765,7 @@ async function deleteEvent(
         updatedHistory,
     });
 
-    console.log(
-      "🗑 Evento removido."
-    );
+    
 
   } catch (error) {
 
@@ -751,9 +804,7 @@ async function setShotResult(
       [`${ID}/history`]: updatedHistory,
     });
 
-    console.log(
-      `🎯 Resultado do chute atualizado: ${result}`
-    );
+    
   } catch (error) {
     console.error("❌ Erro ao atualizar resultado do chute:", error);
   }
@@ -808,6 +859,44 @@ function setupShotResultButtons() {
       void setShotResult(index, result);
     });
   });
+}
+
+// =========================================
+// MENU DE RESULTADO DO CHUTE
+// =========================================
+
+function setupShotSettings() {
+  const toggles =
+    document.querySelectorAll<HTMLButtonElement>(
+      ".shot-settings-toggle"
+    );
+
+  toggles.forEach((toggle) => {
+    toggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+
+      const id = toggle.dataset.shotMenu;
+      if (!id) return;
+
+      document
+        .querySelectorAll<HTMLElement>(".shot-settings-menu")
+        .forEach((menu) => {
+          if (menu.dataset.shotMenuPanel === id) {
+            menu.hidden = !menu.hidden;
+          } else {
+            menu.hidden = true;
+          }
+        });
+    });
+  });
+
+  document.addEventListener("click", () => {
+    document
+      .querySelectorAll<HTMLElement>(".shot-settings-menu")
+      .forEach((menu) => {
+        menu.hidden = true;
+      });
+  }, { once: true });
 }
 
 // =========================================
@@ -1084,8 +1173,10 @@ async function renderPanel(
 
                 <span class="arrow">
                   ${event.result === "goal"
-                    ? "chute a gol + GOL"
-                    : "chute a gol"}
+                    ? "GOOOOOL"
+                    : event.result === "shot"
+                      ? "chute a gol"
+                      : "Realizou um chute e......"}
                 </span>
               `;
             }
@@ -1125,23 +1216,36 @@ async function renderPanel(
             const shotButtons =
               isGM && event.type === "shot"
                 ? `
-                  <div class="shot-actions">
+                  <div class="shot-settings">
                     <button
-                      class="shot-result"
-                      data-index="${realIndex}"
-                      data-result="shot"
-                      title="Registrar somente chute a gol"
+                      class="shot-settings-toggle"
+                      data-shot-menu="${realIndex}"
+                      title="Alterar resultado do chute"
+                      aria-label="Alterar resultado do chute"
                     >
-                      Chute a gol
+                      ⚙
                     </button>
-                    <button
-                      class="shot-result"
-                      data-index="${realIndex}"
-                      data-result="goal"
-                      title="Registrar chute a gol + gol"
+
+                    <div
+                      class="shot-settings-menu"
+                      data-shot-menu-panel="${realIndex}"
+                      hidden
                     >
-                      Chute a gol + GOL
-                    </button>
+                      <button
+                        class="shot-result shot-result-shot"
+                        data-index="${realIndex}"
+                        data-result="shot"
+                      >
+                        Chute a gol
+                      </button>
+                      <button
+                        class="shot-result shot-result-goal"
+                        data-index="${realIndex}"
+                        data-result="goal"
+                      >
+                        GOOOOL
+                      </button>
+                    </div>
                   </div>
                 `
                 : "";
@@ -1181,6 +1285,7 @@ async function renderPanel(
     if (isGM) {
       setupIndividualDeleteButtons();
       setupShotResultButtons();
+      setupShotSettings();
     }
 
   } catch (error) {
