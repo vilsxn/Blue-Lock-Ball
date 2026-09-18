@@ -6,6 +6,8 @@ const MAX_HISTORY = 250;
 
 let waitingForReceiver = false;
 let passerId: string | null = null;
+let waitingForShotTarget = false;
+let shooterId: string | null = null;
 
 // =========================================
 // HISTÓRICO
@@ -43,6 +45,37 @@ type HistoryEvent =
 // =========================================
 
 export function setupPassMode() {
+  void OBR.tool.createMode({
+    id: `${ID}/shot-mode`,
+    icons: [
+      {
+        icon: "/blue-lock-icon.png?v=2",
+        label: "🎯 Escolher destino do chute",
+        filter: {
+          activeTools: ["rodeo.owlbear.tools/pointer"],
+          roles: ["GM"],
+        },
+      },
+    ],
+    onToolDown(_, event) {
+      if (!waitingForShotTarget) return;
+
+      const target = event.pointerPosition;
+      const currentShooterId = shooterId;
+
+      console.log("🖱️ Clique do chute detectado:", target.x, target.y);
+
+      waitingForShotTarget = false;
+      shooterId = null;
+
+      if (!currentShooterId) {
+        console.log("❌ Não foi possível identificar o jogador do chute.");
+        return;
+      }
+
+      void performShot(currentShooterId, target.x, target.y);
+    },
+  });
 
   OBR.player.onChange((player) => {
     if (!waitingForReceiver) return;
@@ -91,6 +124,11 @@ export function startPass(passerIdFromContext: string) {
 // =========================================
 
 export async function startShot(shooterIdFromContext: string) {
+  if (waitingForShotTarget) {
+    console.log("❌ Já existe um chute aguardando destino.");
+    return;
+  }
+
   const metadata = await OBR.scene.getMetadata();
   const ballId = metadata[`${ID}/ball`];
   const holderId = metadata[`${ID}/holder`];
@@ -105,25 +143,15 @@ export async function startShot(shooterIdFromContext: string) {
     return;
   }
 
-  const items = await OBR.scene.items.getItems();
-  const shooter = items.find((item) => item.id === shooterIdFromContext);
+  waitingForShotTarget = true;
+  shooterId = shooterIdFromContext;
 
-  if (!shooter) {
-    console.log("❌ Jogador do chute não encontrado.");
-    return;
-  }
+  console.log("🎯 Chute iniciado. Clique no local exato onde a bola deve parar.");
 
-  await addHistoryEvent({
-    type: "shot",
-    from: shooter.id,
-    to: "",
-    fromName: shooter.name || "Sem nome",
-    toName: "",
-    result: "pending",
-    time: Date.now(),
-  });
-
-  console.log("🎯 Chute registrado no histórico:", shooter.name);
+  await OBR.tool.activateMode(
+    "rodeo.owlbear.tools/pointer",
+    `${ID}/shot-mode`
+  );
 }
 
 // =========================================
