@@ -57,22 +57,23 @@ export function setupPassMode() {
         },
       },
     ],
-    onToolClick(_, event) {
-      if (!waitingForShotTarget) return false;
+    onToolDown(_, event) {
+      if (!waitingForShotTarget) return;
 
       const target = event.pointerPosition;
       const currentShooterId = shooterId;
+
+      console.log("🖱️ Clique do chute detectado:", target.x, target.y);
 
       waitingForShotTarget = false;
       shooterId = null;
 
       if (!currentShooterId) {
         console.log("❌ Não foi possível identificar o jogador do chute.");
-        return false;
+        return;
       }
 
       void performShot(currentShooterId, target.x, target.y);
-      return false;
     },
   });
 
