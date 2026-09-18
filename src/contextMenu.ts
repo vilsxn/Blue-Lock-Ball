@@ -148,7 +148,7 @@ export function setupContextMenu() {
         label: "⚽ Passar bola",
         filter: {
           max: 1,
-          roles: ["GM", "PLAYER"],
+          roles: ["GM"],
           every: [
             {
               key: "layer",
@@ -197,7 +197,7 @@ export function setupContextMenu() {
         label: "🛡️ Interceptar",
         filter: {
           max: 1,
-          roles: ["GM", "PLAYER"],
+          roles: ["GM"],
           every: [
             {
               key: "layer",
