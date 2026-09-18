@@ -15,7 +15,8 @@ const app =
 // =========================================
 
 type HistoryEvent = {
-  type: "pass" | "interception" | "steal";
+  type: "pass" | "interception" | "steal" | "shot";
+  result?: "pending" | "shot" | "goal";
   from: string;
   to: string;
   fromName?: string;
@@ -504,6 +505,27 @@ async function exportHistory() {
         }
 
         // -----------------------------------
+        // CHUTE
+        // -----------------------------------
+
+        else if (event.type === "shot") {
+
+          const result =
+            event.result === "goal"
+              ? "chute a gol + GOL"
+              : "chute a gol";
+
+          text +=
+            `${String(
+              index + 1
+            ).padStart(
+              3,
+              "0"
+            )}. 🎯 ${fromName}: ${result}\n`;
+
+        }
+
+        // -----------------------------------
         // EVENTO DESCONHECIDO
         // -----------------------------------
 
@@ -655,6 +677,13 @@ async function deleteEvent(
 
       description =
         `${fromName} passou para ${toName}`;
+
+    } else if (
+      event.type === "shot"
+    ) {
+
+      description =
+        `${fromName} — ${event.result === "goal" ? "chute a gol + GOL" : "chute a gol"}`;
     }
 
     const confirmed =
@@ -695,6 +724,42 @@ async function deleteEvent(
 }
 
 // =========================================
+// ALTERAR RESULTADO DO CHUTE
+// =========================================
+
+async function setShotResult(
+  index: number,
+  result: "shot" | "goal"
+) {
+  try {
+    const metadata = await OBR.scene.getMetadata();
+    const historyData = metadata[`${ID}/history`];
+
+    if (!Array.isArray(historyData)) return;
+    if (index < 0 || index >= historyData.length) return;
+
+    const event = historyData[index] as HistoryEvent;
+    if (event.type !== "shot") return;
+
+    const updatedHistory = historyData.map((entry, i) =>
+      i === index
+        ? { ...entry, result }
+        : entry
+    );
+
+    await OBR.scene.setMetadata({
+      [`${ID}/history`]: updatedHistory,
+    });
+
+    console.log(
+      `🎯 Resultado do chute atualizado: ${result}`
+    );
+  } catch (error) {
+    console.error("❌ Erro ao atualizar resultado do chute:", error);
+  }
+}
+
+// =========================================
 // BOTÕES DE EXCLUSÃO
 // =========================================
 
@@ -724,6 +789,25 @@ function setupIndividualDeleteButtons() {
       );
     }
   );
+}
+
+// =========================================
+// BOTÕES DE RESULTADO DO CHUTE
+// =========================================
+
+function setupShotResultButtons() {
+  const buttons =
+    document.querySelectorAll<HTMLButtonElement>(
+      ".shot-result"
+    );
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const index = Number(button.dataset.index);
+      const result = button.dataset.result as "shot" | "goal";
+      void setShotResult(index, result);
+    });
+  });
 }
 
 // =========================================
@@ -984,6 +1068,29 @@ async function renderPanel(
             }
 
             // ---------------------------------
+            // CHUTE
+            // ---------------------------------
+
+            else if (event.type === "shot") {
+
+              content = `
+                <span class="pass-ball">
+                  🎯
+                </span>
+
+                <strong>
+                  ${escapeHtml(fromName)}
+                </strong>
+
+                <span class="arrow">
+                  ${event.result === "goal"
+                    ? "chute a gol + GOL"
+                    : "chute a gol"}
+                </span>
+              `;
+            }
+
+            // ---------------------------------
             // PASSE
             // ---------------------------------
 
@@ -1012,6 +1119,33 @@ async function renderPanel(
               `;
             }
 
+            const realIndex =
+              history.length - 1 - index;
+
+            const shotButtons =
+              isGM && event.type === "shot"
+                ? `
+                  <div class="shot-actions">
+                    <button
+                      class="shot-result"
+                      data-index="${realIndex}"
+                      data-result="shot"
+                      title="Registrar somente chute a gol"
+                    >
+                      Chute a gol
+                    </button>
+                    <button
+                      class="shot-result"
+                      data-index="${realIndex}"
+                      data-result="goal"
+                      title="Registrar chute a gol + gol"
+                    >
+                      Chute a gol + GOL
+                    </button>
+                  </div>
+                `
+                : "";
+
             const deleteButton =
               isGM
                 ? `
@@ -1034,6 +1168,8 @@ async function renderPanel(
 
                 </div>
 
+                ${shotButtons}
+
                 ${deleteButton}
 
               </div>
@@ -1044,6 +1180,7 @@ async function renderPanel(
 
     if (isGM) {
       setupIndividualDeleteButtons();
+      setupShotResultButtons();
     }
 
   } catch (error) {

@@ -6,6 +6,8 @@ const MAX_HISTORY = 250;
 
 let waitingForReceiver = false;
 let passerId: string | null = null;
+let waitingForShotTarget = false;
+let shooterId: string | null = null;
 
 // =========================================
 // HISTÓRICO
@@ -27,6 +29,15 @@ type HistoryEvent =
       fromName: string;
       toName: string;
       time: number;
+    }
+  | {
+      type: "shot";
+      from: string;
+      to: string;
+      fromName: string;
+      toName: string;
+      result: "pending" | "shot" | "goal";
+      time: number;
     };
 
 // =========================================
@@ -34,6 +45,37 @@ type HistoryEvent =
 // =========================================
 
 export function setupPassMode() {
+  void OBR.tool.createMode({
+    id: `${ID}/shot-mode`,
+    icons: [
+      {
+        icon: "/blue-lock-icon.png?v=2",
+        label: "🎯 Escolher destino do chute",
+        filter: {
+          activeTools: ["rodeo.owlbear.tools/pointer"],
+          roles: ["GM"],
+        },
+      },
+    ],
+    onToolClick(_, event) {
+      if (!waitingForShotTarget) return false;
+
+      const target = event.pointerPosition;
+      const currentShooterId = shooterId;
+
+      waitingForShotTarget = false;
+      shooterId = null;
+
+      if (!currentShooterId) {
+        console.log("❌ Não foi possível identificar o jogador do chute.");
+        return false;
+      }
+
+      void performShot(currentShooterId, target.x, target.y);
+      return false;
+    },
+  });
+
   OBR.player.onChange((player) => {
     if (!waitingForReceiver) return;
 
@@ -73,6 +115,42 @@ export function startPass(passerIdFromContext: string) {
 
   console.log("⚽ Passe iniciado por:", passerIdFromContext);
   console.log("⚽ Escolha o jogador que vai receber o passe.");
+}
+
+
+// =========================================
+// INICIAR CHUTE
+// =========================================
+
+export async function startShot(shooterIdFromContext: string) {
+  if (waitingForShotTarget) {
+    console.log("❌ Já existe um chute aguardando destino.");
+    return;
+  }
+
+  const metadata = await OBR.scene.getMetadata();
+  const ballId = metadata[`${ID}/ball`];
+  const holderId = metadata[`${ID}/holder`];
+
+  if (typeof ballId !== "string") {
+    console.log("❌ Não existe uma bola definida.");
+    return;
+  }
+
+  if (holderId !== shooterIdFromContext) {
+    console.log("❌ Este jogador não está com a bola.");
+    return;
+  }
+
+  waitingForShotTarget = true;
+  shooterId = shooterIdFromContext;
+
+  console.log("🎯 Chute iniciado. Clique no local exato onde a bola deve parar.");
+
+  await OBR.tool.activateMode(
+    "rodeo.owlbear.tools/pointer",
+    `${ID}/shot-mode`
+  );
 }
 
 // =========================================
@@ -252,6 +330,145 @@ async function finishPass(
   console.log(
     `⚽ Passe concluído: ${passer.name} → ${receiver.name}`
   );
+}
+
+// =========================================
+// EXECUTAR CHUTE
+// =========================================
+
+async function performShot(
+  shooterId: string,
+  targetX: number,
+  targetY: number
+) {
+  try {
+    const metadata = await OBR.scene.getMetadata();
+    const ballId = metadata[`${ID}/ball`];
+    const holderId = metadata[`${ID}/holder`];
+
+    if (typeof ballId !== "string") {
+      console.log("❌ Bola não encontrada.");
+      return;
+    }
+
+    if (holderId !== shooterId) {
+      console.log("❌ O jogador não está mais com a bola.");
+      return;
+    }
+
+    const items = await OBR.scene.items.getItems();
+    const ball = items.find((item) => item.id === ballId);
+    const shooter = items.find((item) => item.id === shooterId);
+
+    if (!ball || !shooter) {
+      console.log("❌ Não foi possível encontrar a bola ou o jogador.");
+      return;
+    }
+
+    const startX = ball.position.x;
+    const startY = ball.position.y;
+
+    console.log("📍 Início do chute:", startX, startY);
+    console.log("🎯 Destino do chute:", targetX, targetY);
+
+    await OBR.scene.items.updateItems([ball.id], (items) => {
+      for (const item of items) {
+        item.attachedTo = undefined;
+        item.position.x = startX;
+        item.position.y = startY;
+      }
+    });
+
+    await OBR.scene.setMetadata({
+      [`${ID}/holder`]: undefined,
+    });
+
+    const updatedItems = await OBR.scene.items.getItems([ball.id]);
+    const updatedBall = updatedItems[0];
+
+    if (!updatedBall) {
+      console.log("❌ Bola desapareceu durante o chute.");
+      return;
+    }
+
+    const interaction = await OBR.interaction.startItemInteraction(updatedBall);
+    const [update, stop] = interaction;
+
+    const duration = 650;
+    const intervalTime = 25;
+    const steps = Math.ceil(duration / intervalTime);
+    let currentStep = 0;
+
+    const timer = setInterval(() => {
+      currentStep++;
+      const progress = Math.min(currentStep / steps, 1);
+      const smooth = progress * progress * (3 - 2 * progress);
+
+      update((item) => {
+        item.position.x = startX + (targetX - startX) * smooth;
+        item.position.y = startY + (targetY - startY) * smooth;
+      });
+
+      if (currentStep >= steps) {
+        clearInterval(timer);
+
+        update((item) => {
+          item.position.x = targetX;
+          item.position.y = targetY;
+        });
+
+        stop();
+        void finishShot(
+          ball.id,
+          shooter.id,
+          targetX,
+          targetY
+        );
+      }
+    }, intervalTime);
+  } catch (error) {
+    console.error("❌ Erro durante o chute:", error);
+  }
+}
+
+// =========================================
+// FINALIZAR CHUTE
+// =========================================
+
+async function finishShot(
+  ballId: string,
+  shooterId: string,
+  targetX: number,
+  targetY: number
+) {
+  const items = await OBR.scene.items.getItems();
+  const shooter = items.find((item) => item.id === shooterId);
+
+  if (!shooter) return;
+
+  await OBR.scene.items.updateItems([ballId], (items) => {
+    for (const item of items) {
+      item.position.x = targetX;
+      item.position.y = targetY;
+      item.attachedTo = undefined;
+    }
+  });
+
+  await OBR.scene.setMetadata({
+    [`${ID}/holder`]: undefined,
+  });
+
+  await addHistoryEvent({
+    type: "shot",
+    from: shooterId,
+    to: "",
+    fromName: shooter.name || "Sem nome",
+    toName: "",
+    result: "pending",
+    time: Date.now(),
+  });
+
+  console.log(`🎯 Chute concluído: ${shooter.name}`);
 }
 
 // =========================================

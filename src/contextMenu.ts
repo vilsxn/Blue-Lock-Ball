@@ -1,5 +1,5 @@
 import OBR from "@owlbear-rodeo/sdk";
-import { startPass, startInterception } from "./passMode";
+import { startPass, startInterception, startShot } from "./passMode";
 
 const ID = "com.bluelock.ball";
 
@@ -182,6 +182,51 @@ export function setupContextMenu() {
       console.log("⚽ Passe iniciado por:", player.name);
 
       startPass(player.id);
+    },
+  });
+
+  // =========================================
+  // CHUTAR
+  // =========================================
+
+  OBR.contextMenu.create({
+    id: `${ID}/shoot-ball`,
+    icons: [
+      {
+        icon: ICON,
+        label: "🎯 Chutar",
+        filter: {
+          max: 1,
+          roles: ["GM"],
+          every: [
+            {
+              key: "layer",
+              value: "CHARACTER",
+            },
+          ],
+        },
+      },
+    ],
+    async onClick(context) {
+      const shooter = context.items[0];
+      if (!shooter) return;
+
+      const metadata = await OBR.scene.getMetadata();
+      const ballId = metadata[`${ID}/ball`];
+      const holderId = metadata[`${ID}/holder`];
+
+      if (typeof ballId !== "string") {
+        console.log("❌ Não existe uma bola definida.");
+        return;
+      }
+
+      if (holderId !== shooter.id) {
+        console.log("❌ Este jogador não está com a bola.");
+        return;
+      }
+
+      console.log("🎯 Chute iniciado por:", shooter.name);
+      await startShot(shooter.id);
     },
   });
 
