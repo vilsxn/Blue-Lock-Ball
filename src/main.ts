@@ -12,25 +12,146 @@ const app =
 
 const shotUiStyle = document.createElement("style");
 shotUiStyle.textContent = `
-  .shot-settings { position: relative; display: inline-flex; align-items: center; margin-left: 6px; }
-  .shot-settings-toggle { width: 30px; height: 30px; border: 1px solid rgba(255,255,255,.16); border-radius: 8px; background: rgba(20,25,35,.92); color: #fff; cursor: pointer; font-size: 16px; display: grid; place-items: center; transition: .15s ease; }
-  .shot-settings-toggle:hover { transform: translateY(-1px); filter: brightness(1.15); }
-  .shot-settings-menu { position: absolute; right: 0; bottom: 36px; z-index: 20; display: flex; gap: 6px; padding: 7px; border-radius: 10px; background: rgba(18,22,30,.98); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 8px 24px rgba(0,0,0,.35); white-space: nowrap; }
-  .shot-settings-menu[hidden] { display: none; }
-  .shot-result { border: 0; border-radius: 7px; padding: 7px 10px; color: #fff; font-weight: 700; cursor: pointer; font-size: 11px; transition: .15s ease; }
-  .shot-result:hover { transform: translateY(-1px); filter: brightness(1.12); }
-  .shot-result-shot { background: #3b82f6; }
-  .shot-result-goal { background: #16a34a; }
-  .assist-settings { position: relative; display: inline-flex; align-items: center; margin-left: 6px; }
-  .assist-settings-toggle { width: 30px; height: 30px; border: 1px solid rgba(255,255,255,.16); border-radius: 8px; background: rgba(20,25,35,.92); color: #fff; cursor: pointer; font-size: 16px; display: grid; place-items: center; transition: .15s ease; }
-  .assist-settings-toggle:hover { transform: translateY(-1px); filter: brightness(1.15); }
-  .assist-settings-menu { position: absolute; right: 0; bottom: 36px; z-index: 20; display: flex; gap: 6px; padding: 7px; border-radius: 10px; background: rgba(18,22,30,.98); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 8px 24px rgba(0,0,0,.35); white-space: nowrap; }
+  .shot-settings,
+  .assist-settings { position: relative; display: inline-flex; align-items: center; flex-shrink: 0; }
+
+  .shot-settings-toggle,
+  .assist-settings-toggle {
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgba(120,160,200,.28);
+    border-radius: 8px;
+    background: linear-gradient(180deg, #182433, #101923);
+    color: #dcecff;
+    cursor: pointer;
+    font-size: 16px;
+    display: grid;
+    place-items: center;
+    transition: .15s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  }
+
+  .shot-settings-toggle:hover,
+  .assist-settings-toggle:hover {
+    transform: translateY(-1px);
+    border-color: rgba(90,170,255,.6);
+    background: linear-gradient(180deg, #203249, #142232);
+  }
+
+  .shot-settings-menu,
+  .assist-settings-menu {
+    position: absolute;
+    right: 0;
+    bottom: 36px;
+    z-index: 20;
+    display: flex;
+    gap: 6px;
+    padding: 7px;
+    border-radius: 10px;
+    background: rgba(13,19,27,.98);
+    border: 1px solid rgba(120,160,200,.28);
+    box-shadow: 0 10px 28px rgba(0,0,0,.45);
+    white-space: nowrap;
+  }
+
+  .shot-settings-menu[hidden],
   .assist-settings-menu[hidden] { display: none; }
-  .assist-result { border: 0; border-radius: 7px; padding: 7px 10px; color: #fff; font-weight: 700; cursor: pointer; font-size: 11px; transition: .15s ease; }
+
+  .shot-result,
+  .assist-result {
+    border: 1px solid transparent;
+    border-radius: 7px;
+    padding: 7px 10px;
+    color: #fff;
+    font-weight: 800;
+    cursor: pointer;
+    font-size: 10px;
+    transition: .15s ease;
+  }
+
+  .shot-result:hover,
   .assist-result:hover { transform: translateY(-1px); filter: brightness(1.12); }
-  .assist-result-on { background: #f59e0b; }
+
+  .shot-result-shot { background: #245a9c; }
+  .shot-result-goal { background: #16804c; }
+  .assist-result-on { background: #9a6808; }
   .assist-result-off { background: #475569; }
-  .assist-badge { display: inline-block; margin-left: 5px; padding: 2px 6px; border-radius: 6px; background: rgba(245,158,11,.18); color: #fbbf24; font-size: 10px; font-weight: 800; }
+
+  .assist-badge,
+  .goal-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 3px;
+    padding: 3px 7px;
+    border-radius: 6px;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .4px;
+    white-space: nowrap;
+  }
+
+  .assist-badge {
+    background: rgba(245,158,11,.18);
+    color: #fbbf24;
+    border: 1px solid rgba(245,158,11,.22);
+  }
+
+  .goal-badge {
+    background: rgba(34,197,94,.18);
+    color: #5eea91;
+    border: 1px solid rgba(34,197,94,.24);
+  }
+
+  /* Histórico: nomes sempre visíveis e ações separadas dos controles */
+  .pass {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    column-gap: 7px !important;
+    min-height: 42px !important;
+    padding: 6px 2px !important;
+  }
+
+  .pass-info {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .event-content {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+    min-width: 0;
+    line-height: 1.25;
+  }
+
+  .event-content strong {
+    flex: 0 1 auto !important;
+    min-width: 0;
+    max-width: 100%;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    color: #fff;
+  }
+
+  .event-content .arrow {
+    flex: 0 1 auto;
+    white-space: normal;
+  }
+
+  .event-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .event-actions .delete-pass {
+    margin-left: 0 !important;
+  }
 `;
 document.head.appendChild(shotUiStyle);
 
@@ -555,7 +676,7 @@ async function exportHistory() {
             ).padStart(
               3,
               "0"
-            )}. ⚽ ${fromName} deu assistência para ${toName}${event.assist ? " — ASSISTÊNCIA" : ""}\n`;
+            )}. ⚽ ${fromName} realizou um passe para ${toName}${event.assist ? " — ASSISTÊNCIA" : ""}\n`;
 
         }
 
@@ -750,14 +871,14 @@ async function deleteEvent(
     ) {
 
       description =
-        `${fromName} deu assistência para ${toName}`;
+        `${fromName} realizou um passe para ${toName}${event.assist ? " — ASSISTÊNCIA" : ""}`;
 
     } else if (
       event.type === "shot"
     ) {
 
       description =
-        `${fromName} — ${event.result === "goal" ? "chute a gol + GOL" : "chute a gol"}`;
+        `${fromName} — Realizou um chute a gol${event.result === "goal" ? " — GOOOOL" : ""}`;
     }
 
     const confirmed =
@@ -1233,25 +1354,12 @@ async function renderPanel(
             ) {
 
               content = `
-                <span class="pass-ball">
-                  🛡️
-                </span>
-
-                <strong>
-                  ${escapeHtml(
-                    toName
-                  )}
-                </strong>
-
-                <span class="arrow">
-                  interceptou
-                </span>
-
-                <strong>
-                  ${escapeHtml(
-                    fromName
-                  )}
-                </strong>
+                <div class="event-content">
+                  <span class="pass-ball">🛡️</span>
+                  <strong>${escapeHtml(toName)}</strong>
+                  <span class="arrow">interceptou</span>
+                  <strong>${escapeHtml(fromName)}</strong>
+                </div>
               `;
 
             }
@@ -1263,21 +1371,12 @@ async function renderPanel(
             else if (event.type === "shot") {
 
               content = `
-                <span class="pass-ball">
-                  🎯
-                </span>
-
-                <strong>
-                  ${escapeHtml(fromName)}
-                </strong>
-
-                <span class="arrow">
-                  ${event.result === "goal"
-                    ? "GOOOOOL"
-                    : event.result === "shot"
-                      ? "chute a gol"
-                      : "Realizou um chute e......"}
-                </span>
+                <div class="event-content">
+                  <span class="pass-ball">🎯</span>
+                  <strong>${escapeHtml(fromName)}</strong>
+                  <span class="arrow">Realizou um chute a gol</span>
+                  ${event.result === "goal" ? '<span class="goal-badge">GOOOOOL</span>' : ""}
+                </div>
               `;
             }
 
@@ -1288,27 +1387,13 @@ async function renderPanel(
             else {
 
               content = `
-                <span class="pass-ball">
-                  ⚽
-                </span>
-
-                <strong>
-                  ${escapeHtml(
-                    fromName
-                  )}
-                </strong>
-
-                <span class="arrow">
-                  deu assistência para
-                </span>
-
-                <strong>
-                  ${escapeHtml(
-                    toName
-                  )}
-                </strong>
-
-                ${event.assist ? '<span class="assist-badge">ASSISTÊNCIA</span>' : ""}
+                <div class="event-content">
+                  <span class="pass-ball">⚽</span>
+                  <strong>${escapeHtml(fromName)}</strong>
+                  <span class="arrow">Realizou um passe para</span>
+                  <strong>${escapeHtml(toName)}</strong>
+                  ${event.assist ? '<span class="assist-badge">ASSISTÊNCIA</span>' : ""}
+                </div>
               `;
             }
 
@@ -1404,18 +1489,14 @@ async function renderPanel(
 
             return `
               <div class="pass">
-
                 <div class="pass-info">
-
                   ${content}
-
                 </div>
-
-                ${passAssistButtons}
-                ${shotButtons}
-
-                ${deleteButton}
-
+                <div class="event-actions">
+                  ${passAssistButtons}
+                  ${shotButtons}
+                  ${deleteButton}
+                </div>
               </div>
             `;
           }
