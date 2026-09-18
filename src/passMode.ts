@@ -26,6 +26,7 @@ type HistoryEvent =
       to: string;
       fromName: string;
       toName: string;
+      defenseImportant?: boolean;
       time: number;
     }
   | {
@@ -481,6 +482,7 @@ async function finishInterception(
     to: interceptorId,
     fromName: holder.name || "Sem nome",
     toName: interceptor.name || "Sem nome",
+    defenseImportant: false,
     time: Date.now(),
   });
 

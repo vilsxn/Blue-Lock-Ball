@@ -102,6 +102,42 @@ shotUiStyle.textContent = `
     border: 1px solid rgba(34,197,94,.24);
   }
 
+  .defense-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 3px;
+    padding: 3px 7px;
+    border-radius: 6px;
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .4px;
+    white-space: nowrap;
+    background: rgba(59,130,246,.18);
+    color: #60a5fa;
+    border: 1px solid rgba(59,130,246,.28);
+  }
+
+  .defense-result {
+    border: 1px solid transparent;
+    border-radius: 7px;
+    padding: 7px 10px;
+    color: #fff;
+    font-weight: 800;
+    cursor: pointer;
+    font-size: 10px;
+    transition: .15s ease;
+    background: #2563a8;
+  }
+
+  .defense-result-off {
+    background: #475569;
+  }
+
+  .defense-result:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.12);
+  }
+
   /* Histórico: nomes sempre visíveis e ações separadas dos controles */
   .pass {
     display: grid !important;
@@ -163,6 +199,7 @@ type HistoryEvent = {
   type: "pass" | "interception" | "steal" | "shot";
   result?: "pending" | "shot" | "goal";
   assist?: boolean;
+  defenseImportant?: boolean;
   from: string;
   to: string;
   fromName?: string;
@@ -299,19 +336,7 @@ async function setupPanel() {
 
         </section>
 
-        <div class="player-help">
 
-          ⚽ Para passar a bola,
-          clique com o botão direito
-          no seu personagem.
-
-          <br><br>
-
-          🛡️ Para interceptar,
-          selecione seu personagem
-          e escolha "Interceptar".
-
-        </div>
 
       </div>
     `;
@@ -695,7 +720,7 @@ async function exportHistory() {
             ).padStart(
               3,
               "0"
-            )}. 🛡️ ${toName} interceptou ${fromName}\n`;
+            )}. 🛡️ ${toName} interceptou ${fromName}${event.defenseImportant ? " — DEFESA IMPORTANTE" : ""}\n`;
 
         }
 
@@ -864,7 +889,7 @@ async function deleteEvent(
     ) {
 
       description =
-        `${toName} interceptou ${fromName}`;
+        `${toName} interceptou ${fromName}${event.defenseImportant ? " — DEFESA IMPORTANTE" : ""}`;
 
     } else if (
       event.type === "pass"
@@ -988,6 +1013,87 @@ function setupPassAssistSettings() {
         .querySelectorAll<HTMLElement>(".assist-settings-menu")
         .forEach((menu) => {
           if (menu.dataset.assistMenuPanel === id) {
+            menu.hidden = !menu.hidden;
+          } else {
+            menu.hidden = true;
+          }
+        });
+    });
+  });
+}
+
+// =========================================
+// ALTERAR MARCADOR DA INTERCEPTAÇÃO
+// =========================================
+
+async function setDefenseImportant(
+  index: number,
+  defenseImportant: boolean
+) {
+  try {
+    const metadata = await OBR.scene.getMetadata();
+    const historyData = metadata[`${ID}/history`];
+
+    if (!Array.isArray(historyData)) return;
+    if (index < 0 || index >= historyData.length) return;
+
+    const event = historyData[index] as HistoryEvent;
+    if (event.type !== "interception" && event.type !== "steal") return;
+
+    const updatedHistory = historyData.map((entry, i) =>
+      i === index
+        ? { ...entry, defenseImportant }
+        : entry
+    );
+
+    await OBR.scene.setMetadata({
+      [`${ID}/history`]: updatedHistory,
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar marcador da interceptação:", error);
+  }
+}
+
+// =========================================
+// BOTÕES DE DEFESA IMPORTANTE
+// =========================================
+
+function setupDefenseImportantButtons() {
+  const buttons =
+    document.querySelectorAll<HTMLButtonElement>(
+      ".defense-result"
+    );
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const index = Number(button.dataset.index);
+      const important = button.dataset.important === "true";
+      void setDefenseImportant(index, important);
+    });
+  });
+}
+
+// =========================================
+// MENU DE DEFESA IMPORTANTE
+// =========================================
+
+function setupDefenseImportantSettings() {
+  const toggles =
+    document.querySelectorAll<HTMLButtonElement>(
+      ".defense-settings-toggle"
+    );
+
+  toggles.forEach((toggle) => {
+    toggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+
+      const id = toggle.dataset.defenseMenu;
+      if (!id) return;
+
+      document
+        .querySelectorAll<HTMLElement>(".defense-settings-menu")
+        .forEach((menu) => {
+          if (menu.dataset.defenseMenuPanel === id) {
             menu.hidden = !menu.hidden;
           } else {
             menu.hidden = true;
@@ -1359,6 +1465,7 @@ async function renderPanel(
                   <strong>${escapeHtml(toName)}</strong>
                   <span class="arrow">interceptou</span>
                   <strong>${escapeHtml(fromName)}</strong>
+                  ${event.defenseImportant ? '<span class="defense-badge">DEFESA IMPORTANTE</span>' : ""}
                 </div>
               `;
 
@@ -1399,6 +1506,43 @@ async function renderPanel(
 
             const realIndex =
               history.length - 1 - index;
+
+            const defenseButtons =
+              isGM && (event.type === "interception" || event.type === "steal")
+                ? `
+                  <div class="assist-settings">
+                    <button
+                      class="assist-settings-toggle defense-settings-toggle"
+                      data-defense-menu="${realIndex}"
+                      title="Alterar defesa importante"
+                      aria-label="Alterar defesa importante"
+                    >
+                      ⚙
+                    </button>
+
+                    <div
+                      class="assist-settings-menu defense-settings-menu"
+                      data-defense-menu-panel="${realIndex}"
+                      hidden
+                    >
+                      <button
+                        class="defense-result"
+                        data-index="${realIndex}"
+                        data-important="true"
+                      >
+                        🛡️ DEFESA IMPORTANTE
+                      </button>
+                      <button
+                        class="defense-result defense-result-off"
+                        data-index="${realIndex}"
+                        data-important="false"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  </div>
+                `
+                : "";
 
             const passAssistButtons =
               isGM && event.type === "pass"
@@ -1493,6 +1637,7 @@ async function renderPanel(
                   ${content}
                 </div>
                 <div class="event-actions">
+                  ${defenseButtons}
                   ${passAssistButtons}
                   ${shotButtons}
                   ${deleteButton}
@@ -1505,6 +1650,8 @@ async function renderPanel(
 
     if (isGM) {
       setupIndividualDeleteButtons();
+      setupDefenseImportantButtons();
+      setupDefenseImportantSettings();
       setupShotResultButtons();
       setupShotSettings();
       setupPassAssistButtons();
