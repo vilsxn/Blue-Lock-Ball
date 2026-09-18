@@ -457,6 +457,7 @@ async function exportHistory() {
           name: string;
           passes: number;
           interceptions: number;
+          defenseImportant: number;
           shots: number;
           goals: number;
           assists: number;
@@ -491,6 +492,7 @@ async function exportHistory() {
               name,
               passes: 1,
               interceptions: 0,
+              defenseImportant: 0,
               shots: 0,
               goals: 0,
               assists: event.assist ? 1 : 0,
@@ -518,6 +520,7 @@ async function exportHistory() {
         if (existing) {
 
           existing.interceptions++;
+          if (event.defenseImportant) existing.defenseImportant++;
 
         } else {
 
@@ -527,6 +530,7 @@ async function exportHistory() {
               name,
               passes: 0,
               interceptions: 1,
+              defenseImportant: event.defenseImportant ? 1 : 0,
               shots: 0,
               goals: 0,
               assists: 0,
@@ -554,6 +558,7 @@ async function exportHistory() {
           name,
           passes: 0,
           interceptions: 0,
+          defenseImportant: 0,
           shots: 1,
           goals: event.result === "goal" ? 1 : 0,
           assists: 0,
@@ -649,6 +654,9 @@ async function exportHistory() {
 
           text +=
             `    Desarmes/Interceptações: ${player.interceptions}\n`;
+
+          text +=
+            `    Defesas Importantes: ${player.defenseImportant}\n`;
 
           text +=
             `    Chutes a gol: ${player.shots}\n`;
